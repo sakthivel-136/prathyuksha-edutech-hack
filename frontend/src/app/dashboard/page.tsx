@@ -133,10 +133,10 @@ export default function Dashboard() {
                 <div className="flex justify-between items-end">
                   <div>
                     <p className="font-black text-white text-lg">{model.name}</p>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 mt-1">
+                    <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest flex items-center gap-2 mt-1">
                       <div className={`w-1.5 h-1.5 rounded-full ${model.color} animate-pulse shadow-[0_0_8px_currentColor]`}></div>
                       {model.algo}
-                    </p>
+                    </div>
                   </div>
                   <div className="text-right">
                     <span className="text-2xl font-black text-white">{model.pct}%</span>

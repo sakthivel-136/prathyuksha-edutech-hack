@@ -152,7 +152,7 @@ export default function EventSubmissions() {
                                     }`}>
                                     {sub.status}
                                 </span>
-                                {(role === 'admin' || role === 'club_coordinator') && sub.status === 'pending' && (
+                                {role === 'club_coordinator' && sub.status === 'pending' && (
                                     <div className="flex gap-2">
                                         <button onClick={() => handleApprove(sub.id, 'approved')} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all">Approve</button>
                                         <button onClick={() => handleApprove(sub.id, 'rejected')} className="bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-rose-700 transition-all">Reject</button>

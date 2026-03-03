@@ -6,17 +6,12 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-<<<<<<< HEAD
     "prod": "npm run build && npm run start",
     "lint": "eslint"
   },
   "engines": {
     "node": ">=18"
   },
-=======
-    "lint": "eslint"
-  },
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
   "dependencies": {
     "@supabase/supabase-js": "^2.98.0",
     "axios": "^1.13.6",

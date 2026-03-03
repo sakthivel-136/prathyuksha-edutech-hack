@@ -58,7 +58,7 @@ export default function SeatingAllocator() {
                 }
             })
             setAllocating(false)
-        }, 3000)
+        }, 1500)
     }
 
     const handleDownload = () => {

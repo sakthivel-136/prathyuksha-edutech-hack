@@ -6,10 +6,10 @@ import {
     CheckCircle2,
     XCircle,
     Clock,
-    FileText,
     Inbox,
     Plus
 } from 'lucide-react'
+import { API_BASE, getAuthHeaders } from '@/lib/api'
 
 export default function EventSubmissions() {
     const [role, setRole] = useState('student')
@@ -19,16 +19,14 @@ export default function EventSubmissions() {
     const [submitting, setSubmitting] = useState(false)
     const [form, setForm] = useState({ event_name: '', event_date: '', event_time: '', venue: '', description: '', department: 'CSE' })
 
-    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : ''
-
     useEffect(() => {
         setRole(localStorage.getItem('userRole') || 'student')
         fetchSubmissions()
     }, [])
 
     const fetchSubmissions = () => {
-        fetch('http://localhost:8000/api/events/submissions', {
-            headers: { 'Authorization': `Bearer ${token}` }
+        fetch(`${API_BASE}/api/events/submissions`, {
+            headers: getAuthHeaders()
         })
             .then(r => r.json())
             .then(data => { setSubmissions(Array.isArray(data) ? data : []); setLoading(false) })
@@ -39,9 +37,9 @@ export default function EventSubmissions() {
         e.preventDefault()
         setSubmitting(true)
         try {
-            await fetch('http://localhost:8000/api/events/submit', {
+            await fetch(`${API_BASE}/api/events/submit`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                 body: JSON.stringify(form)
             })
             setShowForm(false)
@@ -55,9 +53,9 @@ export default function EventSubmissions() {
     }
 
     const handleApprove = async (id: string, status: string) => {
-        await fetch('http://localhost:8000/api/events/approve', {
+        await fetch(`${API_BASE}/api/events/approve`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
             body: JSON.stringify({ event_id: id, status })
         })
         fetchSubmissions()
@@ -149,12 +147,12 @@ export default function EventSubmissions() {
                             </div>
                             <div className="flex items-center gap-4">
                                 <span className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider ${sub.status === 'approved' ? 'bg-emerald-50 text-emerald-700' :
-                                        sub.status === 'rejected' ? 'bg-rose-50 text-rose-700' :
-                                            'bg-amber-50 text-amber-700'
+                                    sub.status === 'rejected' ? 'bg-rose-50 text-rose-700' :
+                                        'bg-amber-50 text-amber-700'
                                     }`}>
                                     {sub.status}
                                 </span>
-                                {role === 'admin' && sub.status === 'pending' && (
+                                {(role === 'admin' || role === 'club_coordinator') && sub.status === 'pending' && (
                                     <div className="flex gap-2">
                                         <button onClick={() => handleApprove(sub.id, 'approved')} className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-emerald-700 transition-all">Approve</button>
                                         <button onClick={() => handleApprove(sub.id, 'rejected')} className="bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-rose-700 transition-all">Reject</button>

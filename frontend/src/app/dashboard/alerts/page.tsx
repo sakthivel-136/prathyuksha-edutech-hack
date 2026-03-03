@@ -1,8 +1,7 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
-    AlertTriangle,
     UserPlus,
     Mail,
     MessageSquare,
@@ -11,15 +10,41 @@ import {
     Users,
     TrendingDown,
     ArrowUpRight,
-    TrendingUp
+    TrendingUp,
+    RefreshCw
 } from 'lucide-react'
+import { API_BASE, getAuthHeaders } from '@/lib/api'
+
+const FALLBACK_AT_RISK = [
+    { name: 'John Doe', roll: 'STU102', risk: '85%', reason: 'High absences (12)', trend: 'up' as const },
+    { name: 'Kavin M', roll: 'STU205', risk: '72%', reason: 'Low study hours (<2h)', trend: 'stable' as const },
+    { name: 'Swetha P', roll: 'STU311', risk: '64%', reason: 'Past grade volatility', trend: 'down' as const },
+]
 
 export default function EarlyWarning() {
-    const atRisk = [
-        { name: 'John Doe', roll: 'STU102', risk: '85%', reason: 'High absences (12)', trend: 'up' },
-        { name: 'Kavin M', roll: 'STU205', risk: '72%', reason: 'Low study hours (<2h)', trend: 'stable' },
-        { name: 'Swetha P', roll: 'STU311', risk: '64%', reason: 'Past grade volatility', trend: 'down' },
-    ]
+    const [atRisk, setAtRisk] = useState<typeof FALLBACK_AT_RISK>(FALLBACK_AT_RISK)
+    const [loading, setLoading] = useState(true)
+
+    const fetchAlerts = () => {
+        setLoading(true)
+        fetch(`${API_BASE}/api/at_risk_students`, { headers: getAuthHeaders() })
+            .then(r => r.json())
+            .then((data: Array<{ id: string; name: string; risk_probability: number; reason: string }>) => {
+                if (Array.isArray(data) && data.length > 0) {
+                    setAtRisk(data.map(s => ({
+                        name: s.name,
+                        roll: s.id,
+                        risk: `${Math.round(s.risk_probability * 100)}%`,
+                        reason: s.reason,
+                        trend: 'stable' as const
+                    })))
+                }
+            })
+            .catch(() => {})
+            .finally(() => setLoading(false))
+    }
+
+    useEffect(() => { fetchAlerts() }, [])
 
     return (
         <div className="space-y-8 fade-in">
@@ -29,31 +54,10 @@ export default function EarlyWarning() {
                     <h1 className="text-4xl font-black text-[#001b5e]">At-Risk Students Panel</h1>
                 </div>
                 <div className="flex gap-4">
-                    <button className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-all">
-                        <Mail className="w-4 h-4" />
-                        Batch Messaging
+                    <button onClick={fetchAlerts} disabled={loading} className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-all disabled:opacity-50">
+                        <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+                        Refresh
                     </button>
-                    <button className="bg-rose-600 text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-rose-900/20 active:scale-95 transition-all">
-                        Trigger Interventions
-                    </button>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="vantage-card overflow-hidden">
-                        <div className="p-8 border-b border-slate-100 flex justify-between items-center">
-                            <h2 className="text-xl font-black text-[#001b5e]">Identified Crisis Profiles</h2>
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Random Forest + SMOTE Active</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="divide-y divide-slate-100">
-                            {atRisk.map((student, i) => (
                                 <div key={i} className="p-8 hover:bg-slate-50 transition-all flex items-center justify-between group">
                                     <div className="flex items-center gap-6">
                                         <div className="w-16 h-16 bg-white rounded-3xl shadow-sm flex items-center justify-center text-rose-600 border border-slate-100 relative group-hover:scale-110 transition-transform">
@@ -78,7 +82,8 @@ export default function EarlyWarning() {
                                         </button>
                                     </div>
                                 </div>
-                            ))}
+                            ))
+                            )}
                         </div>
                     </div>
                 </div>

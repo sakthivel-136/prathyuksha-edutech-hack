@@ -1,16 +1,16 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { Calendar, Clock, MapPin, Inbox, Tag } from 'lucide-react'
+import { Calendar, Clock, MapPin, Inbox } from 'lucide-react'
+import { API_BASE, getAuthHeaders } from '@/lib/api'
 
 export default function AcademicCalendar() {
     const [events, setEvents] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        const token = localStorage.getItem('accessToken')
-        fetch('http://localhost:8000/api/calendar', {
-            headers: { 'Authorization': `Bearer ${token}` }
+        fetch(`${API_BASE}/api/calendar`, {
+            headers: getAuthHeaders()
         })
             .then(r => r.json())
             .then(data => { setEvents(Array.isArray(data) ? data : []); setLoading(false) })

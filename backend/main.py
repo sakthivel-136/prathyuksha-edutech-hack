@@ -12,13 +12,14 @@ from auth import (
     get_current_admin
 )
 
+logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Integrated Academic AI Backend", version="1.0.0")
 
 # CORS setup
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], 
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -55,6 +56,10 @@ async def startup_event():
         logging.info("All local ML models pre-loaded successfully.")
     except Exception as e:
         logging.error(f"Error loading models: {e}")
+
+@app.get("/")
+async def root():
+    return {"status": "success", "message": "Integrated Academic AI Backend is running", "docs": "/docs"}
 
 # --- AUTH ROUTES ---
 
@@ -116,7 +121,7 @@ class StudentFeatures(BaseModel):
     features: Dict[str, float]
 
 @app.post("/api/predict_performance")
-async def predict_performance(data: StudentFeatures, current_user: dict = Depends(get_current_admin)):
+async def predict_performance(data: StudentFeatures, current_user: dict = Depends(get_current_user)):
     """
     Given a JSON payload mimicking the student features, predict G3 and Pass/Fail.
     """
@@ -283,6 +288,33 @@ async def create_exam(exam: ExamCreate, current_user: dict = Depends(get_current
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+# --- HALL TICKETS: Admin publishes, students download own ---
+
+@app.get("/api/hall_tickets/status")
+async def hall_ticket_status(current_user: dict = Depends(get_current_user)):
+    """Returns whether hall tickets are published (admin has enabled downloads)."""
+    from auth import supabase as sb
+    try:
+        res = sb.table('hall_ticket_publish').select('id').limit(1).execute()
+        return {"published": bool(res.data and len(res.data) > 0)}
+    except Exception:
+        return {"published": False}
+
+@app.post("/api/hall_tickets/publish")
+async def publish_hall_tickets(current_user: dict = Depends(get_current_admin)):
+    """Admin only: publish hall tickets so students can download their own."""
+    from auth import supabase as sb
+    from datetime import datetime, timezone
+    try:
+        row = {"id": 1, "published_by": current_user["email"], "published_at": datetime.now(timezone.utc).isoformat()}
+        sb.table('hall_ticket_publish').upsert(row, on_conflict="id").execute()
+    except Exception as e:
+        try:
+            sb.table('hall_ticket_publish').delete().eq('id', 1).execute()
+            sb.table('hall_ticket_publish').insert(row).execute()
+        except Exception:
+            pass
+    return {"message": "Hall tickets published. Students can now download their own tickets."}
 # --- STUDENT PROFILE (for hall ticket) ---
 
 @app.get("/api/me/profile")
@@ -352,8 +384,8 @@ class EventApproval(BaseModel):
 
 @app.post("/api/events/approve")
 async def approve_event(approval: EventApproval, current_user: dict = Depends(get_current_user)):
-    """Only Club Coordinator approves or rejects an event submission."""
-    if current_user["role"] != "club_coordinator":
+    """Club Coordinator or Admin approves or rejects an event submission."""
+    if current_user["role"] not in ("club_coordinator", "admin"):
         raise HTTPException(status_code=403, detail="Only the club coordinator can approve events.")
         
     from auth import supabase as sb

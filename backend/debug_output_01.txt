@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/rekha/.gemini/antigravity/scratch/academic-management-system/backend/training/01_student_performance.py", line 5, in <module>
-    from xgboost import XGBRegressor, XGBClassifier
-ModuleNotFoundError: No module named 'xgboost'

@@ -32,7 +32,7 @@ export default function PerformancePredictor() {
                 ]
             })
             setLoading(false)
-        }, 1500)
+        }, 500)
     }
 
     return (

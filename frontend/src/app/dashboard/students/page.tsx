@@ -1,8 +1,8 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Cookies from "js-cookie"
 import { ShieldAlert, AlertCircle, Loader2, RefreshCw } from "lucide-react"
+import { API_BASE, getAuthHeaders } from "@/lib/api"
 
 interface RiskAlert {
     id: string
@@ -18,11 +18,8 @@ export default function StudentsPage() {
     const fetchAlerts = async () => {
         setLoading(true)
         try {
-            const token = Cookies.get("access_token")
-            const res = await fetch("http://127.0.0.1:8000/api/at_risk_students", {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+            const res = await fetch(`${API_BASE}/api/at_risk_students`, {
+                headers: getAuthHeaders()
             })
             if (res.ok) {
                 setAlerts(await res.json())

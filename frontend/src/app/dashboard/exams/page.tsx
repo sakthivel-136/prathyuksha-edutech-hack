@@ -1,16 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Calendar, Clock, MapPin, Inbox } from 'lucide-react'
-
-export default function ExamSchedule() {
-    const [exams, setExams] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-        const token = localStorage.getItem('accessToken')
-        fetch('http://localhost:8000/api/exams', {
-            headers: { 'Authorization': `Bearer ${token}` }
+import { API_BASE, getAuthHeaders } from '@/lib/api'
         })
             .then(r => r.json())
             .then(data => { setExams(Array.isArray(data) ? data : []); setLoading(false) })

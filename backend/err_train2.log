@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/rekha/.gemini/antigravity/scratch/academic-management-system/backend/training/02_early_warning.py", line 5, in <module>
-    from imblearn.over_sampling import SMOTE
-ModuleNotFoundError: No module named 'imblearn'

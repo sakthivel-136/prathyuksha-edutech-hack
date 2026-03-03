@@ -1,12 +1,12 @@
 /** Clean and format API URL from env var */
 const getApiBaseUrl = () => {
   // Use the env var if it exists AND is not empty, otherwise default to the Render backend
-  let url = process.env.NEXT_PUBLIC_API_URL || 'https://prathyuksha-edutech-hack-backend.onrender.com';
+  let url = process.env.NEXT_PUBLIC_API_URL || 'https://prathyuksha-edutech-hack.onrender.com';
 
   // Check if the user accidentally put the /login frontend URL
   if (url.includes('vercel.app')) {
     console.warn('API URL seems to point to frontend, falling back to correct Render backend');
-    url = 'https://prathyuksha-edutech-hack-backend.onrender.com';
+    url = 'https://prathyuksha-edutech-hack.onrender.com';
   }
   // Remove any trailing slashes or /api paths that might have been accidentally added
   url = url.trim().replace(/\/+$/, '').replace(/\/api$/, '');

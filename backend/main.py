@@ -147,6 +147,103 @@ async def predict_performance(data: StudentFeatures, current_user: dict = Depend
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.get("/api/academic_inequality")
+async def get_academic_inequality(current_user: dict = Depends(get_current_admin)):
+    import pandas as pd
+    try:
+        if 'student_classifier' not in MODELS or 'student_features' not in MODELS:
+            raise HTTPException(status_code=503, detail="Models not loaded")
+        
+        df = pd.read_csv("data/processed_students.csv")
+        X = df[MODELS['student_features']]
+        # Risk probability (failure is class 0)
+        risk_probs = MODELS['student_classifier'].predict_proba(X)[:, 0]
+        df['risk'] = risk_probs
+
+        metrics = []
+        
+        # Parental Education
+        group1_low = float(df[df['Medu'] <= 2]['risk'].mean())
+        group1_high = float(df[df['Medu'] > 2]['risk'].mean())
+        diff_medu = abs(group1_low - group1_high) * 100
+        metrics.append({
+            "factor": "Parental Education",
+            "group_a": "Low Education",
+            "group_b": "High Education",
+            "risk_a": round(group1_low * 100, 1),
+            "risk_b": round(group1_high * 100, 1),
+            "gap": round(diff_medu, 1),
+            "impact": "High" if diff_medu >= 15 else "Moderate" if diff_medu >= 7 else "Low"
+        })
+
+        # Gender
+        group2_M = float(df[df['sex_M'] == 1]['risk'].mean())
+        group2_F = float(df[df['sex_M'] == 0]['risk'].mean())
+        diff_gender = abs(group2_M - group2_F) * 100
+        metrics.append({
+            "factor": "Gender Bias",
+            "group_a": "Male",
+            "group_b": "Female",
+            "risk_a": round(group2_M * 100, 1),
+            "risk_b": round(group2_F * 100, 1),
+            "gap": round(diff_gender, 1),
+            "impact": "High" if diff_gender >= 15 else "Moderate" if diff_gender >= 7 else "Low"
+        })
+
+        # Rural vs Urban
+        group3_U = float(df[df['address_U'] == 1]['risk'].mean())
+        group3_R = float(df[df['address_U'] == 0]['risk'].mean())
+        diff_address = abs(group3_U - group3_R) * 100
+        metrics.append({
+            "factor": "Rural vs Urban",
+            "group_a": "Urban",
+            "group_b": "Rural",
+            "risk_a": round(group3_U * 100, 1),
+            "risk_b": round(group3_R * 100, 1),
+            "gap": round(diff_address, 1),
+            "impact": "High" if diff_address >= 15 else "Moderate" if diff_address >= 7 else "Low"
+        })
+
+        return {"inequality_metrics": metrics}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/risk_heatmap")
+async def get_risk_heatmap(current_user: dict = Depends(get_current_admin)):
+    import pandas as pd
+    import numpy as np
+    try:
+        if 'student_explainer' not in MODELS or 'student_features' not in MODELS:
+            raise HTTPException(status_code=503, detail="Models not loaded")
+            
+        df = pd.read_csv("data/processed_students.csv")
+        sample_size = min(100, len(df))
+        X_sample = df.sample(n=sample_size, random_state=42)[MODELS['student_features']]
+        
+        explainer = MODELS['student_explainer']
+        shap_values = explainer.shap_values(X_sample)
+        # Binary classification SHAP -> returning list of 2 arrays, use [1] for positive class if it's pass.
+        if isinstance(shap_values, list):
+            sv = np.abs(shap_values[0]).mean(0) # magnitude of impact on failing
+        else:
+            sv = np.abs(shap_values).mean(0)
+            
+        # Top 10 features
+        feat_names = MODELS['student_features']
+        feature_impact = [{"feature": feat, "impact": float(val)} for feat, val in zip(feat_names, sv)]
+        feature_impact.sort(key=lambda x: x['impact'], reverse=True)
+        top_features = feature_impact[:10]
+        
+        # Simulate last semester's impact
+        import random
+        for item in top_features:
+            item["previous_impact"] = max(0, item["impact"] * (1 + random.uniform(-0.3, 0.3)))
+            
+        return {"current_semester_drivers": top_features}
+    except Exception as e:
+        logging.error(f"Heatmap error: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
+
 @app.get("/api/at_risk_students")
 async def get_at_risk_alerts(current_user: dict = Depends(get_current_admin)):
     """

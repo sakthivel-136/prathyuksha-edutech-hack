@@ -17,7 +17,8 @@ import {
     GraduationCap,
     FileText,
     LayoutDashboard,
-    Ticket
+    Ticket,
+    List
 } from 'lucide-react'
 
 export default function Sidebar() {
@@ -41,6 +42,8 @@ export default function Sidebar() {
         { name: 'Performance Predictor', icon: BarChart2, path: '/dashboard/performance', allowed: ['student', 'admin'] },
         { name: 'Early Warning', icon: AlertCircle, path: '/dashboard/alerts', allowed: ['admin', 'seating_manager'] },
         { name: 'Insights & Fairness', icon: BarChart2, path: '/dashboard/inequality', allowed: ['admin'] },
+        { name: 'Digital Twin Sim', icon: Users, path: '/dashboard/digital-twin', allowed: ['admin'] },
+        { name: 'Attendance Leaderboard', icon: List, path: '/dashboard/attendance', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator'] },
         { name: 'Mind Map NLP', icon: Brain, path: '/dashboard/mindmap', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator'] },
         { name: 'Seating Allocator', icon: Grid, path: '/dashboard/seating', allowed: ['admin', 'seating_manager'] },
         { name: 'Fraud Detection', icon: ShieldCheck, path: '/dashboard/fraud', allowed: ['admin'] },

@@ -1,19 +1,33 @@
 "use client"
 
-import { LogOut, Bell } from 'lucide-react'
+import { LogOut, Bell, BellRing } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { API_BASE, getAuthHeaders } from '@/lib/api'
 
 export default function Header() {
     const pathname = usePathname()
     const [username, setUsername] = useState('')
     const [role, setRole] = useState('')
     const [showNotifications, setShowNotifications] = useState(false)
+    const [notifications, setNotifications] = useState<any[]>([])
 
     useEffect(() => {
-        setUsername(localStorage.getItem('username') || 'User')
-        setRole(localStorage.getItem('userRole') || 'student')
+        const uName = localStorage.getItem('username') || 'User'
+        const uRole = localStorage.getItem('userRole') || 'student'
+        setUsername(uName)
+        setRole(uRole)
+
+        // Fetch notifications
+        fetch(`${API_BASE}/api/notifications?role=${uRole}&user_id=${encodeURIComponent(uName)}`, {
+            headers: getAuthHeaders()
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) setNotifications(data)
+            })
+            .catch(console.error)
     }, [])
 
     const navItems = [
@@ -54,37 +68,44 @@ export default function Header() {
                         onClick={() => setShowNotifications(!showNotifications)}
                         className="relative p-2 text-slate-300 hover:text-white transition-all rounded-full hover:bg-white/10"
                     >
-                        <Bell className="w-5 h-5" />
-                        <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#001b5e]"></div>
+                        {notifications.length > 0 ? <BellRing className="w-5 h-5 text-white" /> : <Bell className="w-5 h-5" />}
+                        {notifications.length > 0 && (
+                            <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#001b5e] animate-pulse"></div>
+                        )}
                     </button>
 
                     {showNotifications && (
                         <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden fade-in text-left divide-y divide-slate-50">
                             <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
                                 <h4 className="font-black text-[#001b5e] text-sm">Notifications</h4>
-                                <span className="bg-[#001b5e] text-white text-[10px] font-black px-2 py-0.5 rounded-full">3 New</span>
+                                {notifications.length > 0 && (
+                                    <span className="bg-[#001b5e] text-white text-[10px] font-black px-2 py-0.5 rounded-full">{notifications.length} New</span>
+                                )}
                             </div>
-                            <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer">
-                                <p className="text-xs font-bold text-slate-800 mb-1">Hall Ticket Available</p>
-                                <p className="text-[10px] text-slate-500">Your CS301 End Sem hall ticket is now available for download.</p>
-                                <p className="text-[9px] font-bold text-slate-400 mt-2">Just now</p>
-                            </div>
-                            <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer">
-                                <p className="text-xs font-bold text-slate-800 mb-1">New Exam Scheduled</p>
-                                <p className="text-[10px] text-slate-500">Database Management Systems - End Sem has been scheduled.</p>
-                                <p className="text-[9px] font-bold text-slate-400 mt-2">2 hours ago</p>
-                            </div>
-                            <div className="p-4 hover:bg-slate-50 transition-colors cursor-pointer">
-                                <p className="text-xs font-bold text-slate-800 mb-1">Event Approval</p>
-                                <p className="text-[10px] text-slate-500">Your requested Tech Symposium event was approved.</p>
-                                <p className="text-[9px] font-bold text-slate-400 mt-2">1 day ago</p>
-                            </div>
-                            <button
-                                onClick={() => setShowNotifications(false)}
-                                className="w-full p-3 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-slate-50 transition-all text-center"
-                            >
-                                Mark all as read
-                            </button>
+
+                            {notifications.length === 0 ? (
+                                <div className="p-6 text-center text-slate-500 text-xs font-bold">No new notifications</div>
+                            ) : (
+                                notifications.map((notif, idx) => (
+                                    <div key={idx} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer border-l-2 border-transparent hover:border-blue-500">
+                                        <p className="text-xs font-bold text-slate-800 mb-1">{notif.title}</p>
+                                        <p className="text-[10px] text-slate-500 leading-snug">{notif.message}</p>
+                                        <p className="text-[9px] font-bold text-slate-400 mt-2">{notif.time_ago}</p>
+                                    </div>
+                                ))
+                            )}
+
+                            {notifications.length > 0 && (
+                                <button
+                                    onClick={() => {
+                                        setNotifications([])
+                                        setShowNotifications(false)
+                                    }}
+                                    className="w-full p-3 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-slate-50 transition-all text-center"
+                                >
+                                    Mark all as read
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>

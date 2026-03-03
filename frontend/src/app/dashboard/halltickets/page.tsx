@@ -1,7 +1,10 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+<<<<<<< HEAD
 import { API_BASE, getAuthHeaders } from '@/lib/api'
+=======
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
 import {
     Download,
     QrCode,
@@ -9,14 +12,19 @@ import {
     CheckCircle2,
     Shield,
     Calendar,
+<<<<<<< HEAD
     Inbox,
     Send,
     Lock
+=======
+    Inbox
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
 } from 'lucide-react'
 
 export default function HallTickets() {
     const [profile, setProfile] = useState<any>(null)
     const [exams, setExams] = useState<any[]>([])
+<<<<<<< HEAD
     const [published, setPublished] = useState(false)
     const [loading, setLoading] = useState(true)
     const [publishing, setPublishing] = useState(false)
@@ -33,10 +41,27 @@ export default function HallTickets() {
             setProfile(prof)
             setExams(Array.isArray(ex) ? ex : [])
             setPublished(status?.published ?? false)
+=======
+    const [loading, setLoading] = useState(true)
+    const [generating, setGenerating] = useState(false)
+    const [generated, setGenerated] = useState(false)
+
+    useEffect(() => {
+        const token = localStorage.getItem('accessToken')
+        const headers = { 'Authorization': `Bearer ${token}` }
+
+        Promise.all([
+            fetch('http://localhost:8000/api/me/profile', { headers }).then(r => r.json()),
+            fetch('http://localhost:8000/api/exams', { headers }).then(r => r.json()),
+        ]).then(([prof, ex]) => {
+            setProfile(prof)
+            setExams(Array.isArray(ex) ? ex : [])
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
             setLoading(false)
         }).catch(() => setLoading(false))
     }, [])
 
+<<<<<<< HEAD
     // QR encodes roll number for scan - primary field shown when scanned
     const rollNumber = profile?.roll_number || ''
     const qrData = `ROLL:${rollNumber}|${profile?.full_name || ''}|${profile?.department || ''}|${profile?.year_of_study || ''}`
@@ -57,6 +82,15 @@ export default function HallTickets() {
         } finally {
             setPublishing(false)
         }
+=======
+    // QR data: student name, year, roll number
+    const qrData = profile ? `Name: ${profile.full_name} | Roll: ${profile.roll_number} | Year: ${profile.year_of_study} | Dept: ${profile.department} | Section: ${profile.section}` : ''
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`
+
+    const handleGenerate = () => {
+        setGenerating(true)
+        setTimeout(() => { setGenerating(false); setGenerated(true) }, 2000)
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     }
 
     const handleDownload = () => {
@@ -83,7 +117,10 @@ export default function HallTickets() {
         th{background:#001b5e;color:white;padding:12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px}
         td{padding:12px;border-bottom:1px solid #e2e8f0;font-size:14px;font-weight:500}
         .qr-section{text-align:center;margin-top:30px;padding:20px;border:2px dashed #cbd5e1}
+<<<<<<< HEAD
         .qr-label{font-size:12px;font-weight:700;color:#001b5e;margin-top:8px}
+=======
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
         .seal{display:flex;justify-content:space-between;margin-top:60px}
         .seal-item{text-align:center}.seal-line{width:180px;border-top:1px solid #0f172a;margin-bottom:8px}
         .seal-label{font-size:11px;color:#64748b}
@@ -108,7 +145,11 @@ export default function HallTickets() {
         </table>
         <div class="qr-section">
           <img src="${qrUrl}" width="150" height="150" alt="QR Code" />
+<<<<<<< HEAD
           <div class="qr-label">Scan QR to verify → Roll Number: ${profile.roll_number}</div>
+=======
+          <div style="font-size:10px;color:#94a3b8;margin-top:8px">Scan QR to verify: ${profile.full_name} | ${profile.roll_number}</div>
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
         </div>
         <div class="seal">
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Student Signature</div></div>
@@ -129,9 +170,12 @@ export default function HallTickets() {
         )
     }
 
+<<<<<<< HEAD
     const isAdmin = role === 'admin'
     const canDownload = published && exams.length > 0 && profile?.roll_number
 
+=======
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     return (
         <div className="space-y-8 fade-in">
             <div className="flex justify-between items-end">
@@ -139,18 +183,27 @@ export default function HallTickets() {
                     <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Examination</p>
                     <h1 className="text-4xl font-black text-[#001b5e]">Hall Tickets</h1>
                 </div>
+<<<<<<< HEAD
                 {canDownload && (
+=======
+                {generated && (
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                     <div className="flex gap-4">
                         <button onClick={handleDownload} className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-all">
                             <Printer className="w-4 h-4" /> Print
                         </button>
                         <button onClick={handleDownload} className="bg-[#001b5e] text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-blue-900/20 flex items-center gap-2">
+<<<<<<< HEAD
                             <Download className="w-4 h-4" /> Download / Print
+=======
+                            <Download className="w-4 h-4" /> Download PDF
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                         </button>
                     </div>
                 )}
             </div>
 
+<<<<<<< HEAD
             {/* Admin: Publish hall tickets for all students */}
             {isAdmin && (
                 <div className="vantage-card p-6 border-blue-100 bg-blue-50/30">
@@ -199,6 +252,44 @@ export default function HallTickets() {
             {canDownload && (
                 <div className="space-y-8">
                     <div className="vantage-card overflow-hidden">
+=======
+            {exams.length === 0 && !generated ? (
+                <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
+                    <Inbox className="w-16 h-16 text-slate-200" />
+                    <h3 className="text-xl font-black text-[#001b5e]">No Exam Schedule Available</h3>
+                    <p className="text-slate-400 max-w-sm">Hall tickets cannot be generated yet. Your admin will publish the exam schedule first.</p>
+                </div>
+            ) : !generated ? (
+                <div className="vantage-card p-12 flex flex-col items-center justify-center text-center space-y-8 min-h-[500px]">
+                    {generating ? (
+                        <>
+                            <div className="w-24 h-24 border-4 border-[#001b5e] border-t-transparent rounded-full animate-spin"></div>
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-black text-[#001b5e]">Generating Hall Ticket</h3>
+                                <p className="text-slate-500 max-w-sm">Fetching your exam schedule, generating QR verification code with your details...</p>
+                            </div>
+                        </>
+                    ) : (
+                        <>
+                            <div className="w-20 h-20 bg-blue-50 rounded-[2rem] flex items-center justify-center">
+                                <QrCode className="w-10 h-10 text-blue-300" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-black text-[#001b5e]">Generate Your Hall Ticket</h3>
+                                <p className="text-slate-500 max-w-md mx-auto">Your hall ticket will include a scannable QR code with your name, roll number, and year. Verified by HMAC-SHA256.</p>
+                            </div>
+                            <div className="text-sm text-slate-500 font-bold">{exams.length} exam(s) found for your department</div>
+                            <button onClick={handleGenerate} className="bg-[#001b5e] text-white px-10 py-4 rounded-2xl font-black text-lg shadow-xl shadow-blue-900/20 hover:bg-blue-700 transition-all active:scale-95">
+                                Generate Hall Ticket
+                            </button>
+                        </>
+                    )}
+                </div>
+            ) : (
+                <div className="space-y-8">
+                    <div className="vantage-card overflow-hidden">
+                        {/* Header */}
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                         <div className="bg-[#001b5e] p-8 text-white flex justify-between items-center">
                             <div>
                                 <h2 className="text-2xl font-black tracking-wider">VANTAGE</h2>
@@ -210,6 +301,10 @@ export default function HallTickets() {
                             </div>
                         </div>
 
+<<<<<<< HEAD
+=======
+                        {/* Student Info */}
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                         <div className="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 border-b border-slate-100">
                             <div>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Name</p>
@@ -229,6 +324,10 @@ export default function HallTickets() {
                             </div>
                         </div>
 
+<<<<<<< HEAD
+=======
+                        {/* Exam Table */}
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
@@ -254,6 +353,10 @@ export default function HallTickets() {
                             </table>
                         </div>
 
+<<<<<<< HEAD
+=======
+                        {/* QR Section */}
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                         <div className="p-8 flex items-center justify-between bg-slate-50">
                             <div className="flex items-center gap-6">
                                 <div className="w-32 h-32 bg-white border-2 border-slate-200 rounded-xl flex items-center justify-center overflow-hidden">
@@ -261,8 +364,13 @@ export default function HallTickets() {
                                     <img src={qrUrl} alt="QR Code" width={120} height={120} />
                                 </div>
                                 <div className="space-y-2">
+<<<<<<< HEAD
                                     <p className="text-sm font-black text-[#001b5e]">QR Code – Scan to verify Roll Number</p>
                                     <p className="text-[10px] text-slate-400 font-medium">Roll Number: <strong className="text-[#001b5e]">{profile?.roll_number}</strong></p>
+=======
+                                    <p className="text-sm font-black text-[#001b5e]">Scannable QR Verification</p>
+                                    <p className="text-[10px] text-slate-400 font-medium max-w-xs">Scan this QR code to see: <strong>{profile?.full_name}</strong>, Roll: <strong>{profile?.roll_number}</strong>, Year: <strong>{profile?.year_of_study}</strong></p>
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                                     <div className="flex items-center gap-1 text-emerald-600">
                                         <CheckCircle2 className="w-3 h-3" />
                                         <span className="text-[10px] font-bold">HMAC-SHA256 Signature Valid</span>

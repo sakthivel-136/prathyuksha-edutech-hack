@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
     const token = request.cookies.get('access_token')?.value
+<<<<<<< HEAD
     const pathname = request.nextUrl.pathname
     const isAuthPage = pathname.startsWith('/login')
 
@@ -11,6 +12,16 @@ export function middleware(request: NextRequest) {
     }
 
     if (token && (pathname === '/' || isAuthPage)) {
+=======
+
+    const isAuthPage = request.nextUrl.pathname.startsWith('/login')
+
+    if (!token && !isAuthPage) {
+        return NextResponse.redirect(new URL('/login', request.url))
+    }
+
+    if (token && isAuthPage) {
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
         return NextResponse.redirect(new URL('/dashboard', request.url))
     }
 

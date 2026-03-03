@@ -65,9 +65,15 @@ UPDATE ON public.user_profiles FOR EACH ROW
 EXECUTE FUNCTION public.set_updated_at();
 
 -- 3. THE COMPLETE RE-CREATION OF EXAMS AND COURSES
+<<<<<<< HEAD
 -- CASCADE drops dependent FKs (hall_tickets, seat_allocations) that reference exams
 DROP TABLE IF EXISTS public.exams CASCADE;
 DROP TABLE IF EXISTS public.courses CASCADE;
+=======
+-- Dropping old ones so we don't encounter random default/not-null constraint errors anymore
+DROP TABLE IF EXISTS public.exams;
+DROP TABLE IF EXISTS public.courses;
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
 
 CREATE TABLE public.courses (
     id uuid DEFAULT uuid_generate_v4() PRIMARY KEY,
@@ -121,6 +127,7 @@ INSERT INTO public.exams (course_id, course_code, course_name, exam_date, exam_t
 ((SELECT id from public.courses where course_code = 'CS302'), 'CS302', 'Database Management Systems', '2026-03-20', '09:00 AM', 'B-103', 'End Sem', 'CSE'),
 ((SELECT id from public.courses where course_code = 'CS303'), 'CS303', 'Operating Systems', '2026-03-22', '02:00 PM', 'A-201', 'End Sem', 'CSE'),
 ((SELECT id from public.courses where course_code = 'MA301'), 'MA301', 'Linear Algebra', '2026-03-25', '09:00 AM', 'A-105', 'End Sem', 'CSE');
+<<<<<<< HEAD
 
 -- Hall ticket publish: admin publishes once, then students can download their own
 CREATE TABLE IF NOT EXISTS public.hall_ticket_publish (
@@ -128,3 +135,5 @@ CREATE TABLE IF NOT EXISTS public.hall_ticket_publish (
     published_at timestamp with time zone DEFAULT now(),
     published_by text
 );
+=======
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5

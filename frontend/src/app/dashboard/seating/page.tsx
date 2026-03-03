@@ -58,7 +58,11 @@ export default function SeatingAllocator() {
                 }
             })
             setAllocating(false)
+<<<<<<< HEAD
         }, 1500)
+=======
+        }, 3000)
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     }
 
     const handleDownload = () => {

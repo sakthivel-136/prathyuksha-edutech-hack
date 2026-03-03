@@ -22,7 +22,11 @@ export default function MindMapNLP() {
         setTimeout(() => {
             setProcessing(false)
             setComplete(true)
+<<<<<<< HEAD
         }, 1200)
+=======
+        }, 4000)
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     }
 
     return (

@@ -1,6 +1,9 @@
 "use client"
 
+<<<<<<< HEAD
 import { useState, useEffect } from 'react'
+=======
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -22,10 +25,14 @@ import {
 
 export default function Sidebar() {
     const pathname = usePathname()
+<<<<<<< HEAD
     const [role, setRole] = useState('student')
     useEffect(() => {
         setRole(localStorage.getItem('userRole') || 'student')
     }, [])
+=======
+    const role = typeof window !== 'undefined' ? localStorage.getItem('userRole') || 'student' : 'student'
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
 
     // Core menu - visible based on role
     const coreMenu = [
@@ -33,7 +40,10 @@ export default function Sidebar() {
         { name: 'My Courses', icon: BookOpen, path: '/dashboard/courses', allowed: ['student', 'admin'] },
         { name: 'Exam Schedule', icon: CalendarDays, path: '/dashboard/exams', allowed: ['student', 'admin', 'seating_manager'] },
         { name: 'Hall Tickets', icon: Ticket, path: '/dashboard/halltickets', allowed: ['student', 'admin'] },
+<<<<<<< HEAD
         { name: 'Academic Calendar', icon: CalendarDays, path: '/dashboard/calendar', allowed: ['admin', 'seating_manager', 'club_coordinator'] },
+=======
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     ]
 
     // Academic AI modules

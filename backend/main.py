@@ -116,7 +116,11 @@ class StudentFeatures(BaseModel):
     features: Dict[str, float]
 
 @app.post("/api/predict_performance")
+<<<<<<< HEAD
 async def predict_performance(data: StudentFeatures, current_user: dict = Depends(get_current_user)):
+=======
+async def predict_performance(data: StudentFeatures, current_user: dict = Depends(get_current_admin)):
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     """
     Given a JSON payload mimicking the student features, predict G3 and Pass/Fail.
     """
@@ -283,6 +287,7 @@ async def create_exam(exam: ExamCreate, current_user: dict = Depends(get_current
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+<<<<<<< HEAD
 # --- HALL TICKETS: Admin publishes, students download own ---
 
 @app.get("/api/hall_tickets/status")
@@ -311,6 +316,8 @@ async def publish_hall_tickets(current_user: dict = Depends(get_current_admin)):
             pass
     return {"message": "Hall tickets published. Students can now download their own tickets."}
 
+=======
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
 # --- STUDENT PROFILE (for hall ticket) ---
 
 @app.get("/api/me/profile")
@@ -380,8 +387,13 @@ class EventApproval(BaseModel):
 
 @app.post("/api/events/approve")
 async def approve_event(approval: EventApproval, current_user: dict = Depends(get_current_user)):
+<<<<<<< HEAD
     """Club Coordinator or Admin approves or rejects an event submission."""
     if current_user["role"] not in ("club_coordinator", "admin"):
+=======
+    """Only Club Coordinator approves or rejects an event submission."""
+    if current_user["role"] != "club_coordinator":
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
         raise HTTPException(status_code=403, detail="Only the club coordinator can approve events.")
         
     from auth import supabase as sb

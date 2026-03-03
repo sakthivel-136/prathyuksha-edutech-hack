@@ -18,7 +18,11 @@ export default function LoginPage() {
         setError('')
 
         try {
+<<<<<<< HEAD
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/login`, {
+=======
+            const res = await fetch('http://localhost:8000/api/login', {
+>>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

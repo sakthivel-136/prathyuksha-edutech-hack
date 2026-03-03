@@ -76,7 +76,14 @@ export default function MindMapNLP() {
                 },
                 body: formData
             });
+            
+            if (!res.ok) {
+                setProcessing(false);
+                alert("Server error uploading PDF. Please check backend requirements.");
+                return;
+            }
             const data = await res.json();
+
 
             // To provide visual effect of NLP taking some time to cluster
             setTimeout(() => {
@@ -168,7 +175,7 @@ export default function MindMapNLP() {
                         </h2>
                         {complete && results ? (
                             <div className="flex flex-wrap gap-2">
-                                {results.concepts.map((tag: string, i: number) => (
+                                {(results?.concepts || []).map((tag: string, i: number) => (
                                     <span key={i} className="bg-slate-50 text-slate-600 px-3 py-1.5 rounded-lg text-xs font-bold border border-slate-200">
                                         {tag}
                                     </span>
@@ -188,7 +195,7 @@ export default function MindMapNLP() {
                                     <FileText className="w-6 h-6 text-blue-600" />
                                 </div>
                                 <div>
-                                    <h3 className="font-black text-[#001b5e] uppercase">{results ? results.filename : (file ? file.name : "VANTAGE Knowledge Graph")}</h3>
+                                    <h3 className="font-black text-[#001b5e] uppercase">{(results && results.filename) ? results.filename : (file ? file.name : "VANTAGE Knowledge Graph")}</h3>
                                     <p className="text-xs font-bold text-slate-400">Semantic Node Trees</p>
                                 </div>
                             </div>

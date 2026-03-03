@@ -12,6 +12,7 @@ export default function Header() {
     const [role, setRole] = useState('')
     const [showNotifications, setShowNotifications] = useState(false)
     const [notifications, setNotifications] = useState<any[]>([])
+    const [hasReadNotifications, setHasReadNotifications] = useState(false)
 
     useEffect(() => {
         const uName = localStorage.getItem('username') || 'User'
@@ -69,9 +70,11 @@ export default function Header() {
                         className="relative p-2 text-slate-300 hover:text-white transition-all rounded-full hover:bg-white/10"
                     >
                         {notifications.length > 0 ? <BellRing className="w-5 h-5 text-white" /> : <Bell className="w-5 h-5" />}
-                        {notifications.length > 0 && (
+                        {notifications.length > 0 ? (
                             <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#001b5e] animate-pulse"></div>
-                        )}
+                        ) : hasReadNotifications ? (
+                            <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#001b5e]"></div>
+                        ) : null}
                     </button>
 
                     {showNotifications && (
@@ -99,6 +102,7 @@ export default function Header() {
                                 <button
                                     onClick={() => {
                                         setNotifications([])
+                                        setHasReadNotifications(true)
                                         setShowNotifications(false)
                                     }}
                                     className="w-full p-3 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-slate-50 transition-all text-center"

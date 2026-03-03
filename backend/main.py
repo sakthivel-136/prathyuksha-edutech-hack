@@ -269,6 +269,91 @@ async def get_risk_heatmap(current_user: dict = Depends(get_current_admin)):
         logging.error(f"Heatmap error: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
+class TwinSimulation(BaseModel):
+    raw_features: dict
+    modifications: dict
+
+@app.post("/api/digital_twin/simulate")
+async def simulate_digital_twin(sim: TwinSimulation, current_user: dict = Depends(get_current_admin)):
+    import pandas as pd
+    import numpy as np
+    try:
+        features = MODELS['student_features']
+        clf = MODELS['student_classifier']
+        
+        # apply mods
+        current_state = sim.raw_features.copy()
+        for k, v in sim.modifications.items():
+            current_state[k] = v
+            
+        # compute new risk
+        df = pd.DataFrame([current_state])
+        # Ensure ordered columns
+        for f in features:
+            if f not in df.columns:
+                df[f] = 0
+        X = df[features]
+        new_risk = clf.predict_proba(X)[:,0][0] # class 0 is generally fail/drop in this model setup
+        
+        return {"new_risk": float(new_risk)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/digital_twin/student")
+async def get_digital_twin_student(current_user: dict = Depends(get_current_admin)):
+    import pandas as pd
+    try:
+        df = pd.read_csv("data/processed_students.csv")
+        clf = MODELS['student_classifier']
+        features = MODELS['student_features']
+        risks = clf.predict_proba(df[features])[:,0]
+        # find student risk between 40% and 75%
+        valid_idxs = [i for i, r in enumerate(risks) if 0.4 < r < 0.75]
+        target_idx = valid_idxs[0] if valid_idxs else 0
+        target = df.iloc[target_idx]
+        
+        base_features = {f: float(target.get(f, 0)) for f in features}
+        return {
+            "name": "Jane Doe (Anonymized Model 4A)",
+            "base_risk": float(risks[target_idx]),
+            "features": {
+                "studytime": int(target.get('studytime', 0)),
+                "failures": int(target.get('failures', 0)),
+                "absences": int(target.get('absences', 0)),
+                "goout": int(target.get('goout', 0)),
+                "health": int(target.get('health', 0))
+            },
+            "raw_features": base_features
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/api/attendance_leaderboard")
+async def get_attendance_leaderboard(current_user: dict = Depends(get_current_user)):
+    import pandas as pd
+    import numpy as np
+    try:
+        # Simulate attendance data for board
+        students = [
+            {"id": "STU001", "name": "Aarushi T", "attendance_avg": 98.2, "attendance_std": 0.5, "department": "CSE"},
+            {"id": "STU105", "name": "Karthik R", "attendance_avg": 95.5, "attendance_std": 2.4, "department": "ECE"},
+            {"id": "STU042", "name": "Sneha V", "attendance_avg": 96.0, "attendance_std": 1.5, "department": "MECH"},
+            {"id": "STU088", "name": "Manoj P", "attendance_avg": 92.1, "attendance_std": 8.9, "department": "CSE"},
+            {"id": "STU112", "name": "Priya S", "attendance_avg": 94.0, "attendance_std": 3.0, "department": "CIVIL"},
+            {"id": "STU200", "name": "Rahul M", "attendance_avg": 89.0, "attendance_std": 1.2, "department": "ECE"}
+        ]
+        
+        # Consistency Index = 100 - (Std Dev)
+        for s in students:
+            s["consistency_score"] = max(0, 100 - s["attendance_std"])
+            # The formula balances raw average with consistency
+            s["final_score"] = (s["attendance_avg"] * 0.7) + (s["consistency_score"] * 0.3)
+            
+        students.sort(key=lambda x: x["final_score"], reverse=True)
+        return {"leaderboard": students[:10]}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 @app.get("/api/at_risk_students")
 async def get_at_risk_alerts(current_user: dict = Depends(get_current_admin)):
     """

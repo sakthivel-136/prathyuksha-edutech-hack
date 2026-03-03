@@ -5,18 +5,25 @@ import { usePathname, useRouter } from 'next/navigation'
 
 /** Routes each role can access - must match Sidebar allowed roles */
 const ROLE_ROUTES: Record<string, string[]> = {
-  student: ['/dashboard', '/dashboard/courses', '/dashboard/exams', '/dashboard/halltickets', '/dashboard/performance', '/dashboard/mindmap', '/dashboard/recommender'],
+  student: ['/dashboard', '/dashboard/courses', '/dashboard/exams', '/dashboard/halltickets', '/dashboard/performance', '/dashboard/mindmap', '/dashboard/recommender', '/dashboard/calendar', '/dashboard/events'],
   admin: ['/dashboard', '/dashboard/courses', '/dashboard/exams', '/dashboard/halltickets', '/dashboard/performance', '/dashboard/alerts', '/dashboard/students', '/dashboard/mindmap', '/dashboard/seating', '/dashboard/fraud', '/dashboard/events', '/dashboard/recommender', '/dashboard/calendar'],
   seating_manager: ['/dashboard', '/dashboard/exams', '/dashboard/alerts', '/dashboard/students', '/dashboard/mindmap', '/dashboard/seating', '/dashboard/events', '/dashboard/calendar'],
   club_coordinator: ['/dashboard', '/dashboard/mindmap', '/dashboard/events', '/dashboard/calendar'],
 }
 
 function isPathAllowed(path: string, role: string): boolean {
+  if (path === '/dashboard') return true
   const allowed = ROLE_ROUTES[role] || ROLE_ROUTES.student
-  return allowed.includes(path)
+  return allowed.includes(path) || false
 }
 
-export default function RoleGuard({ children }: { children: React.ReactNode }) {
+export default function RoleGuard({
+  children,
+  allowedRoles
+}: {
+  children: React.ReactNode
+  allowedRoles?: string[]
+}) {
   const pathname = usePathname()
   const router = useRouter()
   const [ready, setReady] = useState(false)

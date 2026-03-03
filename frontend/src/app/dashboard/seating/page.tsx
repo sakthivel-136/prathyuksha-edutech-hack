@@ -27,22 +27,43 @@ export default function SeatingAllocator() {
             const y2Count = Math.floor(config.roomCapacity * config.year2Pct / 100)
             const y3Count = config.roomCapacity - y2Count
 
-            const rooms = Array.from({ length: config.rooms }, (_, ri) => ({
-                name: `Room ${String.fromCharCode(65 + ri)}-${101 + ri}`,
-                capacity: config.roomCapacity,
-                seats: Array.from({ length: config.roomCapacity }, (_, si) => {
-                    const isY2 = si < y2Count
-                    const row = String.fromCharCode(65 + Math.floor(si / 6))
-                    const col = (si % 6) + 1
-                    return {
-                        id: `${row}${col}`,
-                        student: `${isY2 ? 'Y2' : 'Y3'}-${String(Math.floor(Math.random() * 900) + 100)}`,
-                        year: isY2 ? '2nd Year' : '3rd Year',
-                        dept: ['CSE', 'ECE', 'MECH', 'EEE', 'CIVIL'][Math.floor(Math.random() * 5)],
-                        isY2
+            const rooms = Array.from({ length: config.rooms }, (_, ri) => {
+                const roomStudents: boolean[] = []
+                let y2Left = y2Count
+                let y3Left = y3Count
+                let nextIsY2 = true
+
+                for (let i = 0; i < config.roomCapacity; i++) {
+                    if (y2Left > 0 && y3Left > 0) {
+                        roomStudents.push(nextIsY2)
+                        if (nextIsY2) y2Left--; else y3Left--;
+                        nextIsY2 = !nextIsY2;
+                    } else if (y2Left > 0) {
+                        roomStudents.push(true)
+                        y2Left--;
+                    } else {
+                        roomStudents.push(false)
+                        y3Left--;
                     }
-                })
-            }))
+                }
+
+                return {
+                    name: `Room ${String.fromCharCode(65 + ri)}-${101 + ri}`,
+                    capacity: config.roomCapacity,
+                    seats: Array.from({ length: config.roomCapacity }, (_, si) => {
+                        const isY2 = roomStudents[si]
+                        const row = String.fromCharCode(65 + Math.floor(si / 6))
+                        const col = (si % 6) + 1
+                        return {
+                            id: `${row}${col}`,
+                            student: `${isY2 ? 'Y2' : 'Y3'}-${String(Math.floor(Math.random() * 900) + 100)}`,
+                            year: isY2 ? '2nd Year' : '3rd Year',
+                            dept: ['CSE', 'ECE', 'MECH', 'EEE', 'CIVIL'][Math.floor(Math.random() * 5)],
+                            isY2
+                        }
+                    })
+                }
+            })
 
             setResult({
                 rooms,
@@ -294,8 +315,8 @@ export default function SeatingAllocator() {
                                                 <div
                                                     key={si}
                                                     className={`p-3 rounded-lg text-center cursor-pointer hover:scale-105 transition-all border ${seat.isY2
-                                                            ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-                                                            : 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
+                                                        ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
+                                                        : 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
                                                         }`}
                                                     title={`${seat.student} | ${seat.year} | ${seat.dept}`}
                                                 >

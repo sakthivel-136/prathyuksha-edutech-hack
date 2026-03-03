@@ -57,6 +57,31 @@ async def startup_event():
     except Exception as e:
         logging.error(f"Error loading models: {e}")
 
+GLOBAL_NOTIFICATIONS = []
+
+class Notification(BaseModel):
+    title: str
+    message: str
+    target_role: str
+    target_user_id: str = None
+    time_ago: str = "Just now"
+
+@app.post("/api/notifications")
+async def create_notification(notif: Notification):
+    GLOBAL_NOTIFICATIONS.insert(0, notif.dict())
+    return {"success": True}
+
+@app.get("/api/notifications")
+async def get_notifications(role: str = None, user_id: str = None):
+    # Filter notifications if needed, otherwise return all relevant
+    res = []
+    for n in GLOBAL_NOTIFICATIONS:
+        if n['target_role'] == 'all' or n['target_role'] == role:
+            res.append(n)
+        elif n['target_user_id'] and n['target_user_id'] == user_id:
+            res.append(n)
+    return res
+
 @app.get("/")
 async def root():
     return {"status": "success", "message": "Integrated Academic AI Backend is running", "docs": "/docs"}
@@ -381,6 +406,11 @@ async def create_exam(exam: ExamCreate, current_user: dict = Depends(get_current
     from auth import supabase as sb
     try:
         res = sb.table('exams').insert(exam.dict()).execute()
+        # Unpublish hall tickets to force admin to republish
+        try:
+            sb.table('hall_ticket_publish').delete().eq('id', 1).execute()
+        except:
+            pass
         return res.data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -390,6 +420,11 @@ async def delete_exam(exam_id: str, current_user: dict = Depends(get_current_adm
     from auth import supabase as sb
     try:
         res = sb.table('exams').delete().eq('id', exam_id).execute()
+        # Unpublish hall tickets to force admin to republish
+        try:
+            sb.table('hall_ticket_publish').delete().eq('id', 1).execute()
+        except:
+            pass
         return {"success": True}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -408,6 +443,11 @@ async def update_exam(exam_id: str, exam: ExamUpdate, current_user: dict = Depen
     from auth import supabase as sb
     try:
         res = sb.table('exams').update(exam.dict()).eq('id', exam_id).execute()
+        # Unpublish hall tickets to force admin to republish
+        try:
+            sb.table('hall_ticket_publish').delete().eq('id', 1).execute()
+        except:
+            pass
         return res.data
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

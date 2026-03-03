@@ -24,6 +24,31 @@ const FALLBACK_AT_RISK = [
 export default function EarlyWarning() {
     const [atRisk, setAtRisk] = useState<typeof FALLBACK_AT_RISK>(FALLBACK_AT_RISK)
     const [loading, setLoading] = useState(true)
+    const [selectedStudent, setSelectedStudent] = useState<any>(null)
+    const [isSubmitting, setIsSubmitting] = useState(false)
+
+    const handleScheduleCounseling = async (student: any, staff: string, date: string, time: string) => {
+        setIsSubmitting(true)
+        try {
+            await fetch(`${API_BASE}/api/notifications`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({
+                    title: 'Counseling Scheduled',
+                    message: `Your counseling has been scheduled with ${staff} on ${date} at ${time}.`,
+                    target_role: 'student',
+                    target_user_id: student.name // sending name since user profile mock doesn't match ID easily in demo
+                })
+            })
+            alert('Counseling scheduled successfully! Notification sent to student.')
+            setSelectedStudent(null)
+        } catch (error) {
+            console.error(error)
+            alert('Failed to schedule counseling')
+        } finally {
+            setIsSubmitting(false)
+        }
+    }
 
     const fetchAlerts = () => {
         setLoading(true)
@@ -64,7 +89,7 @@ export default function EarlyWarning() {
                                 <div className="p-8 text-center text-slate-500">No students are currently marked as at-risk.</div>
                             ) : (
                                 atRisk.map((student, i) => (
-                                    <div key={i} className="p-8 hover:bg-slate-50 transition-all flex items-center justify-between group">
+                                    <div key={i} className="p-8 hover:bg-slate-50 transition-all flex flex-col md:flex-row items-start md:items-center justify-between group gap-4">
                                         <div className="flex items-center gap-6">
                                             <div className="w-16 h-16 bg-white rounded-3xl shadow-sm flex items-center justify-center text-rose-600 border border-slate-100 relative group-hover:scale-110 transition-transform">
                                                 <Users className="w-8 h-8" />
@@ -75,7 +100,7 @@ export default function EarlyWarning() {
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-12">
+                                        <div className="flex flex-wrap items-center gap-6 md:gap-12">
                                             <div className="text-right">
                                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Risk Factor</p>
                                                 <div className="flex items-center gap-2 justify-end">
@@ -83,8 +108,11 @@ export default function EarlyWarning() {
                                                     <span className={`text-2xl font-black ${parseInt(student.risk) > 80 ? 'text-rose-600' : 'text-[#001b5e]'}`}>{student.risk}</span>
                                                 </div>
                                             </div>
-                                            <button className="bg-white border border-slate-200 p-4 rounded-2xl group-hover:bg-[#001b5e] group-hover:text-white transition-all shadow-sm">
-                                                <ChevronRight className="w-5 h-5" />
+                                            <button
+                                                onClick={() => setSelectedStudent(student)}
+                                                className="bg-white border border-slate-200 px-4 py-3 rounded-2xl hover:bg-[#001b5e] hover:border-[#001b5e] hover:text-white transition-all shadow-sm text-sm font-bold text-slate-600 flex items-center gap-2"
+                                            >
+                                                <UserPlus className="w-4 h-4" /> Schedule Counseling
                                             </button>
                                         </div>
                                     </div>
@@ -104,10 +132,10 @@ export default function EarlyWarning() {
                         <div className="p-4 bg-white border border-rose-200 rounded-2xl space-y-4">
                             <div className="flex justify-between items-center text-xs font-bold">
                                 <span className="text-slate-500">Prediction Accuracy</span>
-                                <span className="text-rose-600">90.4% F1</span>
+                                <span className="text-rose-600">95.7% Acc | 0.919 F1</span>
                             </div>
                             <div className="h-2 bg-rose-100 rounded-full overflow-hidden">
-                                <div className="h-full bg-rose-600 w-[90%]" />
+                                <div className="h-full bg-rose-600 w-[95%]" />
                             </div>
                         </div>
                     </div>
@@ -116,9 +144,8 @@ export default function EarlyWarning() {
                         <h3 className="font-black text-[#001b5e] mb-6">Action Quick Links</h3>
                         <div className="space-y-3">
                             {[
-                                { label: 'Schedule Counseling', icon: UserPlus },
-                                { label: 'View Performance Shocks', icon: TrendingDown },
                                 { label: 'Add to Watchlist', icon: MessageSquare },
+                                { label: 'Contact Parents', icon: Mail },
                             ].map((link, i) => (
                                 <button key={i} className="w-full flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-all group">
                                     <div className="flex items-center gap-3">
@@ -132,6 +159,48 @@ export default function EarlyWarning() {
                     </div>
                 </div>
             </div>
+
+            {/* Counseling Modal */}
+            {selectedStudent && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4 fade-in">
+                    <div className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl relative">
+                        <h2 className="text-2xl font-black text-[#001b5e] mb-2">Schedule Counseling</h2>
+                        <p className="text-sm text-slate-500 mb-6">For: <strong className="text-slate-800">{selectedStudent.name}</strong> ({selectedStudent.roll})</p>
+
+                        <form onSubmit={(e) => {
+                            e.preventDefault();
+                            const target = e.target as any;
+                            const staff = target.staff.value;
+                            const date = target.date.value;
+                            const time = target.time.value;
+                            handleScheduleCounseling(selectedStudent, staff, date, time);
+                        }} className="space-y-4">
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Assigned Staff / Counselor</label>
+                                <input required name="staff" type="text" className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="e.g. Dr. Ramesh K" />
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Date</label>
+                                    <input required name="date" type="date" className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Time</label>
+                                    <input required name="time" type="time" className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <button type="button" onClick={() => setSelectedStudent(null)} className="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-200 transition-all">Cancel</button>
+                                <button type="submit" disabled={isSubmitting} className="flex-1 bg-[#001b5e] text-white py-3 rounded-xl font-black shadow-xl hover:bg-blue-800 transition-all disabled:opacity-50">
+                                    {isSubmitting ? 'Scheduling...' : 'Confirm Schedule'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

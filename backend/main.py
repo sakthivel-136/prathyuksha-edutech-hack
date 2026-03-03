@@ -121,11 +121,7 @@ class StudentFeatures(BaseModel):
     features: Dict[str, float]
 
 @app.post("/api/predict_performance")
-<<<<<<< HEAD
 async def predict_performance(data: StudentFeatures, current_user: dict = Depends(get_current_user)):
-=======
-async def predict_performance(data: StudentFeatures, current_user: dict = Depends(get_current_admin)):
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     """
     Given a JSON payload mimicking the student features, predict G3 and Pass/Fail.
     """

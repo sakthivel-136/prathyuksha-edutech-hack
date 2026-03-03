@@ -40,8 +40,8 @@ export default function LoginPage() {
 
             // Hard navigation to ensure middleware sees the new cookie
             window.location.href = '/dashboard'
-        } catch (err: any) {
-            setError(err.message)
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : 'Login failed')
         } finally {
             setLoading(false)
         }

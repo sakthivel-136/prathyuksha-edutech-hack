@@ -1,0 +1,18 @@
+# Render.com deployment - Backend (Python/FastAPI)
+# Deploy: Connect repo and select this blueprint, or create Web Service manually
+services:
+  - type: web
+    name: vantage-backend
+    runtime: python
+    region: singapore
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: SUPABASE_JWT_SECRET
+        generateValue: true

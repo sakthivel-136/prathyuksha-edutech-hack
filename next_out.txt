@@ -1,0 +1,26 @@
+[?25l[2K[1G[36m?[39m [1mWould you like to use React Compiler?[22m [90m›[39m No [90m/[39m [36m[4mYes[39m[24m[2K[1G[2K[1G[36m?[39m [1mWould you like to use React Compiler?[22m [90m›[39m [36m[4mNo[39m[24m [90m/[39m Yes[2K[1G[2K[1G[32m✔[39m [1mWould you like to use React Compiler?[22m [90m…[39m [36m[4mNo[39m[24m [90m/[39m Yes
+[?25hCreating a new Next.js app in /Users/rekha/.gemini/antigravity/scratch/academic-management-system/frontend.
+
+Using npm.
+
+Initializing project with template: app-tw 
+
+
+Installing dependencies:
+- next
+- react
+- react-dom
+
+Installing devDependencies:
+- @tailwindcss/postcss
+- @types/node
+- @types/react
+- @types/react-dom
+- eslint
+- eslint-config-next
+- tailwindcss
+- typescript
+
+npm error process terminated
+npm error signal SIGINT
+npm error A complete log of this run can be found in: /Users/rekha/.npm/_logs/2026-03-03T07_42_47_663Z-debug-0.log

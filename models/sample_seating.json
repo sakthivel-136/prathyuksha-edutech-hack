@@ -1,0 +1,181 @@
+{
+    "status": "success",
+    "penalty": 10,
+    "grid": [
+        {
+            "id": "STU030",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU013",
+            "subject": "Chemistry"
+        },
+        {
+            "id": "STU026",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU004",
+            "subject": "Math"
+        },
+        {
+            "id": "STU000",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU036",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU009",
+            "subject": "Physics"
+        },
+        null,
+        {
+            "id": "STU037",
+            "subject": "Biology"
+        },
+        null,
+        null,
+        {
+            "id": "STU018",
+            "subject": "CS"
+        },
+        {
+            "id": "STU034",
+            "subject": "Physics"
+        },
+        null,
+        {
+            "id": "STU003",
+            "subject": "CS"
+        },
+        null,
+        {
+            "id": "STU033",
+            "subject": "Math"
+        },
+        {
+            "id": "STU039",
+            "subject": "CS"
+        },
+        null,
+        {
+            "id": "STU027",
+            "subject": "Chemistry"
+        },
+        {
+            "id": "STU005",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU020",
+            "subject": "Physics"
+        },
+        {
+            "id": "STU019",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU035",
+            "subject": "CS"
+        },
+        {
+            "id": "STU007",
+            "subject": "Physics"
+        },
+        {
+            "id": "STU017",
+            "subject": "Chemistry"
+        },
+        {
+            "id": "STU002",
+            "subject": "CS"
+        },
+        null,
+        {
+            "id": "STU016",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU001",
+            "subject": "Chemistry"
+        },
+        {
+            "id": "STU008",
+            "subject": "CS"
+        },
+        {
+            "id": "STU029",
+            "subject": "Biology"
+        },
+        null,
+        {
+            "id": "STU025",
+            "subject": "CS"
+        },
+        {
+            "id": "STU031",
+            "subject": "Physics"
+        },
+        {
+            "id": "STU023",
+            "subject": "Physics"
+        },
+        null,
+        {
+            "id": "STU032",
+            "subject": "Math"
+        },
+        {
+            "id": "STU028",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU015",
+            "subject": "Math"
+        },
+        null,
+        {
+            "id": "STU038",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU012",
+            "subject": "CS"
+        },
+        {
+            "id": "STU006",
+            "subject": "Chemistry"
+        },
+        {
+            "id": "STU011",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU010",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU021",
+            "subject": "Physics"
+        },
+        {
+            "id": "STU024",
+            "subject": "Biology"
+        },
+        {
+            "id": "STU014",
+            "subject": "CS"
+        },
+        {
+            "id": "STU022",
+            "subject": "Math"
+        }
+    ],
+    "metrics": {
+        "total_students": 40,
+        "total_seats": 50,
+        "empty_seats": 10
+    }
+}

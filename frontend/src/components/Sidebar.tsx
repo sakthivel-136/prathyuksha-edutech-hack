@@ -33,7 +33,7 @@ export default function Sidebar() {
         { name: 'My Courses', icon: BookOpen, path: '/dashboard/courses', allowed: ['student', 'admin'] },
         { name: 'Exam Schedule', icon: CalendarDays, path: '/dashboard/exams', allowed: ['student', 'admin', 'seating_manager'] },
         { name: 'Hall Tickets', icon: Ticket, path: '/dashboard/halltickets', allowed: ['student', 'admin'] },
-        { name: 'Academic Calendar', icon: CalendarDays, path: '/dashboard/calendar', allowed: ['admin', 'seating_manager', 'club_coordinator'] },
+        { name: 'Academic Calendar', icon: CalendarDays, path: '/dashboard/calendar', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator'] },
     ]
 
     // Academic AI modules
@@ -43,7 +43,7 @@ export default function Sidebar() {
         { name: 'Mind Map NLP', icon: Brain, path: '/dashboard/mindmap', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator'] },
         { name: 'Seating Allocator', icon: Grid, path: '/dashboard/seating', allowed: ['admin', 'seating_manager'] },
         { name: 'Fraud Detection', icon: ShieldCheck, path: '/dashboard/fraud', allowed: ['admin'] },
-        { name: 'Event Conflict', icon: CalendarDays, path: '/dashboard/events', allowed: ['admin', 'club_coordinator'] },
+        { name: 'Submit Local Event', icon: CalendarDays, path: '/dashboard/events', allowed: ['student', 'admin', 'club_coordinator'] },
         { name: 'Study Recommender', icon: Sparkles, path: '/dashboard/recommender', allowed: ['student', 'admin'] },
     ]
 

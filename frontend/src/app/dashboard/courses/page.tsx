@@ -3,7 +3,14 @@
 import { useEffect, useState } from 'react'
 import { BookOpen, Clock, Inbox } from 'lucide-react'
 import { API_BASE, getAuthHeaders } from '@/lib/api'
-        })
+
+export default function CoursesPage() {
+    const [courses, setCourses] = useState<Record<string, string | number>[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        setLoading(true)
+        fetch(`${API_BASE}/api/courses`, { headers: getAuthHeaders() })
             .then(r => r.json())
             .then(data => { setCourses(Array.isArray(data) ? data : []); setLoading(false) })
             .catch(() => setLoading(false))
@@ -32,11 +39,11 @@ import { API_BASE, getAuthHeaders } from '@/lib/api'
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {courses.map((course: any, i: number) => (
+                    {courses.map((course, i) => (
                         <div key={i} className="vantage-card p-6 space-y-4 hover:shadow-xl transition-all group cursor-pointer">
                             <div className="flex justify-between items-start">
                                 <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#001b5e] font-black text-sm border border-blue-100">
-                                    {(course.course_code || '??').slice(0, 2)}
+                                    {(course.course_code?.toString() || '??').slice(0, 2)}
                                 </div>
                                 <span className="text-[10px] font-black text-blue-500 bg-blue-50 px-3 py-1 rounded-full">{course.credits || 0} Credits</span>
                             </div>

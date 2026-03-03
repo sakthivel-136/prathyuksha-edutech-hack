@@ -1,8 +1,16 @@
 "use client"
 
 import { useEffect, useState } from 'react'
+import { Clock, MapPin, Inbox } from 'lucide-react'
 import { API_BASE, getAuthHeaders } from '@/lib/api'
-        })
+
+export default function ExamsPage() {
+    const [exams, setExams] = useState<Record<string, string>[]>([])
+    const [loading, setLoading] = useState(true)
+
+    useEffect(() => {
+        setLoading(true)
+        fetch(`${API_BASE}/api/exams`, { headers: getAuthHeaders() })
             .then(r => r.json())
             .then(data => { setExams(Array.isArray(data) ? data : []); setLoading(false) })
             .catch(() => setLoading(false))
@@ -32,7 +40,7 @@ import { API_BASE, getAuthHeaders } from '@/lib/api'
             ) : (
                 <div className="vantage-card overflow-hidden">
                     <div className="divide-y divide-slate-100">
-                        {exams.map((exam: any, i: number) => (
+                        {exams.map((exam, i: number) => (
                             <div key={i} className="p-6 hover:bg-slate-50 transition-all flex items-center justify-between">
                                 <div className="flex items-center gap-6">
                                     <div className="w-14 h-14 bg-blue-50 rounded-2xl flex flex-col items-center justify-center text-[#001b5e] border border-blue-100">

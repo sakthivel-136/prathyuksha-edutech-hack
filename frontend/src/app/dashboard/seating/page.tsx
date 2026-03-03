@@ -15,7 +15,15 @@ import {
 } from 'lucide-react'
 
 export default function SeatingAllocator() {
-    const [config, setConfig] = useState({ roomCapacity: 30, year2Pct: 50, year3Pct: 50, rooms: 3 })
+    const [config, setConfig] = useState({
+        roomCapacity: 30,
+        rooms: 3,
+        depts: [
+            { name: 'CSE', count: 10 },
+            { name: 'ECE', count: 15 },
+            { name: 'MECH', count: 5 }
+        ]
+    })
     const [allocating, setAllocating] = useState(false)
     const [result, setResult] = useState<any>(null)
 
@@ -24,45 +32,37 @@ export default function SeatingAllocator() {
 
         // Simulate Genetic Algorithm allocation
         setTimeout(() => {
-            const y2Count = Math.floor(config.roomCapacity * config.year2Pct / 100)
-            const y3Count = config.roomCapacity - y2Count
-
             const realisticRoomNames = ['C 15', 'C 16', 'C 17', 'B 101', 'B 102', 'A 201', 'A 202'];
 
-            const rooms = Array.from({ length: config.rooms }, (_, ri) => {
-                const roomStudents: boolean[] = []
-                let y2Left = y2Count
-                let y3Left = y3Count
-                let nextIsY2 = true
+            // Build base pool for one room
+            let basePool: string[] = [];
+            config.depts.forEach(d => {
+                for (let i = 0; i < d.count; i++) basePool.push(d.name);
+            });
+            while (basePool.length < config.roomCapacity) basePool.push('OTHER');
+            basePool.length = config.roomCapacity;
 
-                for (let i = 0; i < config.roomCapacity; i++) {
-                    if (y2Left > 0 && y3Left > 0) {
-                        roomStudents.push(nextIsY2)
-                        if (nextIsY2) y2Left--; else y3Left--;
-                        nextIsY2 = !nextIsY2;
-                    } else if (y2Left > 0) {
-                        roomStudents.push(true)
-                        y2Left--;
-                    } else {
-                        roomStudents.push(false)
-                        y3Left--;
-                    }
-                }
+            const rooms = Array.from({ length: config.rooms }, (_, ri) => {
+                // Shuffle pool to simulate genetic algorithm scattering
+                const pool = [...basePool].sort(() => Math.random() - 0.5);
 
                 return {
                     name: realisticRoomNames[ri % realisticRoomNames.length],
                     capacity: config.roomCapacity,
                     secureHash: Math.random().toString(36).substring(2, 10).toUpperCase(),
                     seats: Array.from({ length: config.roomCapacity }, (_, si) => {
-                        const isY2 = roomStudents[si]
-                        const row = String.fromCharCode(65 + Math.floor(si / 6))
-                        const col = (si % 6) + 1
+                        const dept = pool[si] || 'OTHER';
+                        const row = String.fromCharCode(65 + Math.floor(si / 6));
+                        const col = (si % 6) + 1;
+
+                        // Assign a specific color index based on the dept
+                        const colorIndex = config.depts.findIndex(d => d.name === dept);
+
                         return {
                             id: `${row}${col}`,
-                            student: `${isY2 ? 'Y2' : 'Y3'}-${String(Math.floor(Math.random() * 900) + 100)}`,
-                            year: isY2 ? '2nd Year' : '3rd Year',
-                            dept: ['CSE', 'ECE', 'MECH', 'EEE', 'CIVIL'][Math.floor(Math.random() * 5)],
-                            isY2
+                            student: `101${String(Math.floor(Math.random() * 90) + 10)}`, // short roll no
+                            dept: dept,
+                            colorIndex: colorIndex
                         }
                     })
                 }
@@ -73,8 +73,6 @@ export default function SeatingAllocator() {
                 stats: {
                     totalStudents: config.roomCapacity * config.rooms,
                     totalRooms: config.rooms,
-                    y2Students: y2Count * config.rooms,
-                    y3Students: y3Count * config.rooms,
                     constraintsSatisfied: '100%',
                     deptClashes: 0,
                     generationsUsed: Math.floor(Math.random() * 200) + 150,
@@ -125,8 +123,7 @@ export default function SeatingAllocator() {
             <div class="stat-box"><div class="stat-val">${result.stats.deptClashes}</div><div class="stat-label">Dept Clashes</div></div>
           </div>
           <div class="legend">
-            <div class="legend-item"><div class="legend-dot" style="background:#dbeafe"></div> 2nd Year</div>
-            <div class="legend-item"><div class="legend-dot" style="background:#dcfce7"></div> 3rd Year</div>
+            ${config.depts.map((d, i) => `<div class="legend-item"><div class="legend-dot" style="background:${['#eff6ff', '#f0fdf4', '#faf5ff', '#fff1f2', '#fffbeb'][i % 5]}"></div> ${d.name}</div>`).join('')}
           </div>
           ${result.rooms.map((room: any) => `
             <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #e2e8f0; padding-bottom:8px; margin-bottom:12px;">
@@ -136,8 +133,11 @@ export default function SeatingAllocator() {
                 </div>
             </div>
             <table>
-              <thead><tr><th>Seat</th><th>Roll No</th><th>Year</th><th>Dept</th></tr></thead>
-              <tbody>${room.seats.map((s: any) => `<tr class="${s.isY2 ? 'y2' : 'y3'}"><td>${s.id}</td><td>${s.student}</td><td>${s.year}</td><td>${s.dept}</td></tr>`).join('')}</tbody>
+              <thead><tr><th>Seat</th><th>Roll No</th><th>Dept</th></tr></thead>
+              <tbody>${room.seats.map((s: any) => `
+                <tr style="background:${['#eff6ff', '#f0fdf4', '#faf5ff', '#fff1f2', '#fffbeb'][s.colorIndex > -1 ? s.colorIndex : 0]}">
+                    <td>${s.id}</td><td>${s.student}</td><td>${s.dept}</td>
+                </tr>`).join('')}</tbody>
             </table>
             <div style="page-break-after:always;"></div>
           `).join('')}
@@ -205,22 +205,50 @@ export default function SeatingAllocator() {
                                     className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl font-bold text-[#001b5e] outline-none focus:ring-2 focus:ring-[#001b5e]"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">2nd Year % (rest → 3rd Year)</label>
-                                <input
-                                    type="range"
-                                    min="10" max="90"
-                                    value={config.year2Pct}
-                                    onChange={(e) => {
-                                        const v = parseInt(e.target.value)
-                                        setConfig({ ...config, year2Pct: v, year3Pct: 100 - v })
-                                    }}
-                                    className="w-full accent-[#001b5e]"
-                                />
-                                <div className="flex justify-between text-xs font-bold">
-                                    <span className="text-blue-600">2nd: {Math.floor(config.roomCapacity * config.year2Pct / 100)} seats ({config.year2Pct}%)</span>
-                                    <span className="text-emerald-600">3rd: {config.roomCapacity - Math.floor(config.roomCapacity * config.year2Pct / 100)} seats ({config.year3Pct}%)</span>
+                            <div className="space-y-4 pt-4 border-t border-slate-100">
+                                <div className="flex justify-between items-center">
+                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Department Distribution</label>
+                                    <span className="text-xs font-bold text-slate-500">{config.depts.reduce((s, d) => s + d.count, 0)} / {config.roomCapacity} seats</span>
                                 </div>
+                                {config.depts.map((dept, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={dept.name}
+                                            onChange={(e) => {
+                                                const newDepts = [...config.depts];
+                                                newDepts[idx].name = e.target.value;
+                                                setConfig({ ...config, depts: newDepts });
+                                            }}
+                                            className="w-1/2 bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e] text-sm"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={dept.count}
+                                            onChange={(e) => {
+                                                const newDepts = [...config.depts];
+                                                newDepts[idx].count = parseInt(e.target.value) || 0;
+                                                setConfig({ ...config, depts: newDepts });
+                                            }}
+                                            className="w-1/2 bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e] text-sm"
+                                        />
+                                        <button
+                                            onClick={() => {
+                                                const newDepts = config.depts.filter((_, i) => i !== idx);
+                                                setConfig({ ...config, depts: newDepts });
+                                            }}
+                                            className="text-slate-400 hover:text-rose-500"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+                                ))}
+                                <button
+                                    onClick={() => setConfig({ ...config, depts: [...config.depts, { name: 'NEW_DEPT', count: 0 }] })}
+                                    className="text-xs font-bold text-blue-600 w-full text-left pt-2 pb-2"
+                                >
+                                    + Add Department
+                                </button>
                             </div>
 
                             <div className="space-y-3 pt-4 border-t border-slate-100">
@@ -290,7 +318,7 @@ export default function SeatingAllocator() {
                     ) : result ? (
                         <div className="space-y-8">
                             {/* Summary Cards */}
-                            <div className="grid grid-cols-4 gap-4">
+                            <div className="grid grid-cols-3 gap-4">
                                 <div className="vantage-card p-6 text-center">
                                     <p className="text-3xl font-black text-[#001b5e]">{result.stats.totalStudents}</p>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Students</p>
@@ -300,12 +328,8 @@ export default function SeatingAllocator() {
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Rooms</p>
                                 </div>
                                 <div className="vantage-card p-6 text-center">
-                                    <p className="text-3xl font-black text-blue-600">{result.stats.y2Students}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">2nd Year</p>
-                                </div>
-                                <div className="vantage-card p-6 text-center">
-                                    <p className="text-3xl font-black text-emerald-600">{result.stats.y3Students}</p>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">3rd Year</p>
+                                    <p className="text-3xl font-black text-emerald-600">{result.stats.constraintsSatisfied}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Success</p>
                                 </div>
                             </div>
 
@@ -318,9 +342,13 @@ export default function SeatingAllocator() {
                                             <h3 className="font-black text-[#001b5e] text-lg">{room.name}</h3>
                                             <span className="text-xs font-bold text-slate-400">({room.capacity} seats)</span>
                                         </div>
-                                        <div className="flex gap-4 text-xs font-bold">
-                                            <span className="flex items-center gap-1"><div className="w-3 h-3 bg-blue-100 rounded-sm border border-blue-200"></div> 2nd Year</span>
-                                            <span className="flex items-center gap-1"><div className="w-3 h-3 bg-emerald-100 rounded-sm border border-emerald-200"></div> 3rd Year</span>
+                                        <div className="flex flex-wrap gap-2 text-[10px] font-bold uppercase tracking-widest">
+                                            {config.depts.map((d, i) => (
+                                                <span key={i} className="flex items-center gap-1">
+                                                    <div className={`w-3 h-3 rounded-sm border ${['bg-blue-100 border-blue-200', 'bg-emerald-100 border-emerald-200', 'bg-purple-100 border-purple-200', 'bg-rose-100 border-rose-200', 'bg-amber-100 border-amber-200'][i % 5]}`}></div>
+                                                    {d.name}
+                                                </span>
+                                            ))}
                                         </div>
                                     </div>
                                     <div className="bg-slate-800 text-slate-300 text-[10px] font-black uppercase tracking-widest px-6 py-2 flex items-center justify-between border-y border-slate-700">
@@ -331,20 +359,20 @@ export default function SeatingAllocator() {
                                     </div>
                                     <div className="p-6">
                                         <div className="grid grid-cols-6 gap-2">
-                                            {room.seats.map((seat: any, si: number) => (
-                                                <div
-                                                    key={si}
-                                                    className={`p-3 rounded-lg text-center cursor-pointer hover:scale-105 transition-all border ${seat.isY2
-                                                        ? 'bg-blue-50 border-blue-200 hover:bg-blue-100'
-                                                        : 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100'
-                                                        }`}
-                                                    title={`${seat.student} | ${seat.year} | ${seat.dept}`}
-                                                >
-                                                    <p className="text-xs font-black text-[#001b5e]">{seat.id}</p>
-                                                    <p className="text-[8px] font-bold text-slate-400 truncate">{seat.student}</p>
-                                                    <p className="text-[8px] font-bold text-slate-500">{seat.dept}</p>
-                                                </div>
-                                            ))}
+                                            {room.seats.map((seat: any, si: number) => {
+                                                const bgClasses = ['bg-blue-50 border-blue-200 hover:bg-blue-100 text-blue-900', 'bg-emerald-50 border-emerald-200 hover:bg-emerald-100 text-emerald-900', 'bg-purple-50 border-purple-200 hover:bg-purple-100 text-purple-900', 'bg-rose-50 border-rose-200 hover:bg-rose-100 text-rose-900', 'bg-amber-50 border-amber-200 hover:bg-amber-100 text-amber-900']
+                                                const bg = bgClasses[seat.colorIndex > -1 ? (seat.colorIndex % bgClasses.length) : 0]
+                                                return (
+                                                    <div
+                                                        key={si}
+                                                        className={`p-3 rounded-lg text-center cursor-pointer hover:scale-105 transition-all border ${bg}`}
+                                                        title={`${seat.student} | ${seat.dept}`}
+                                                    >
+                                                        <p className="text-xs font-black">{seat.id}</p>
+                                                        <p className="text-[10px] font-bold opacity-80 mt-1">{seat.dept}</p>
+                                                    </div>
+                                                )
+                                            })}
                                         </div>
                                     </div>
                                 </div>

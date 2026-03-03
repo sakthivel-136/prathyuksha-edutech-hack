@@ -125,10 +125,14 @@ export default function SeatingAllocator() {
             ${config.depts.map((d, i) => `<div class="legend-item"><div class="legend-dot" style="background:${['#eff6ff', '#f0fdf4', '#faf5ff', '#fff1f2', '#fffbeb'][i % 5]}"></div> ${d.name}</div>`).join('')}
           </div>
           ${result.rooms.map((room: any) => `
-            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #e2e8f0; padding-bottom:8px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; border-bottom:2px solid #e2e8f0; padding-bottom:12px; margin-bottom:16px;">
                 <div class="room-title" style="margin:0;">Room: ${room.name} (Capacity: ${room.capacity})</div>
-                <div style="font-size:10px; font-family:monospace; background:#f1f5f9; border:1px solid #cbd5e1; padding:4px 8px; border-radius:4px; font-weight:bold;">
-                    🔒 Anti-Fraud Auth: ${room.secureHash}
+                <div style="display:flex; align-items:center; gap:12px;">
+                    <div style="font-size:10px; font-family:monospace; background:#f1f5f9; border:1px solid #cbd5e1; padding:6px 10px; border-radius:4px; font-weight:bold;">
+                        🔒 SECURITY AUTH<br/>
+                        <span style="color:#001b5e; font-size:12px;">${room.secureHash}</span>
+                    </div>
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=50x50&data=${encodeURIComponent('ROOM:' + room.name + '|AUTH:' + room.secureHash)}" width="45" height="45" crossorigin="anonymous" style="border-radius:4px; border:1px solid #cbd5e1; padding:2px; background:white;" />
                 </div>
             </div>
             <table>

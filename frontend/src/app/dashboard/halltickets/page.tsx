@@ -17,6 +17,7 @@ export default function HallTickets() {
     const [profile, setProfile] = useState<any>(null)
     const [exams, setExams] = useState<any[]>([])
     const [published, setPublished] = useState(false)
+    const [coeApproved, setCoeApproved] = useState(false)
     const [loading, setLoading] = useState(true)
     const [publishing, setPublishing] = useState(false)
     const [role, setRole] = useState('student')
@@ -32,6 +33,7 @@ export default function HallTickets() {
             setProfile(prof)
             setExams(Array.isArray(ex) ? ex : [])
             setPublished(status?.published ?? false)
+            setCoeApproved(status?.coe_approved ?? false)
             setLoading(false)
         }).catch(() => setLoading(false))
     }, [])
@@ -49,6 +51,9 @@ export default function HallTickets() {
             })
             if (res.ok) {
                 setPublished(true)
+                if (role === 'coe') {
+                    setCoeApproved(true)
+                }
             }
         } catch (e) {
             console.error(e)
@@ -59,19 +64,17 @@ export default function HallTickets() {
 
     const handleDownload = () => {
         if (!profile) return
-        const printWindow = window.open('', '_blank')
-        if (!printWindow) return
 
         const examRows = exams.map(e =>
             `<tr><td>${e.course_code}</td><td>${e.course_name}</td><td>${e.exam_date}</td><td>${e.exam_time}</td><td>${e.room}</td></tr>`
         ).join('')
 
-        printWindow.document.write(`
+        const htmlContent = `
       <html>
       <head><title>Hall Ticket - ${profile.full_name}</title>
       <style>
-        body{font-family:'Inter',system-ui,sans-serif;padding:40px;color:#0f172a}
-        .header{display:flex;justify-content:between;align-items:center;border-bottom:3px solid #001b5e;padding-bottom:20px;margin-bottom:30px}
+        body{font-family:'Inter',system-ui,sans-serif;padding:40px;color:#0f172a;max-width:800px;margin:0 auto;}
+        .header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #001b5e;padding-bottom:20px;margin-bottom:30px}
         .logo{font-size:28px;font-weight:900;color:#001b5e}
         .subtitle{font-size:11px;color:#64748b;text-transform:uppercase;letter-spacing:2px}
         .info-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:30px}
@@ -80,7 +83,7 @@ export default function HallTickets() {
         table{width:100%;border-collapse:collapse;margin-top:20px}
         th{background:#001b5e;color:white;padding:12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px}
         td{padding:12px;border-bottom:1px solid #e2e8f0;font-size:14px;font-weight:500}
-        .qr-section{text-align:center;margin-top:30px;padding:20px;border:2px dashed #cbd5e1}
+        .qr-section{text-align:center;margin-top:30px;padding:20px;border:2px dashed #cbd5e1;border-radius:12px;}
         .qr-label{font-size:12px;font-weight:700;color:#001b5e;margin-top:8px}
         .seal{display:flex;justify-content:space-between;margin-top:60px}
         .seal-item{text-align:center;width:200px}
@@ -102,18 +105,33 @@ export default function HallTickets() {
         </div>
         <table><thead><tr><th>Code</th><th>Subject</th><th>Date</th><th>Time</th><th>Room</th></tr></thead><tbody>${examRows}</tbody></table>
         <div class="qr-section">
-          <img src="${qrUrl}" width="120" height="120" />
+          <img src="${qrUrl}" width="120" height="120" crossorigin="anonymous" />
           <div class="qr-label">Digital Verification QR Code</div>
         </div>
         <div class="seal">
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Student Signature</div></div>
+          ${coeApproved ? '<div class="seal-item" style="color:#10b981;font-weight:900;text-transform:uppercase;font-size:14px;">✅ APPROVED BY COE</div>' : ''}
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Controller of Examinations</div></div>
         </div>
         <div class="footer">Computer-generated document verified by HMAC-SHA256 | Generated: ${new Date().toLocaleString()} | Vantage v1.0</div>
       </body></html>
-    `)
-        printWindow.document.close()
-        printWindow.print()
+    `;
+
+        import('html2pdf.js').then((html2pdfModule) => {
+            const html2pdf = html2pdfModule.default;
+            const element = document.createElement('div');
+            element.innerHTML = htmlContent;
+
+            const opt = {
+                margin: 10,
+                filename: 'HallTicket_' + profile.roll_number + '.pdf',
+                image: { type: 'jpeg' as const, quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
+            };
+
+            html2pdf().set(opt).from(element).save();
+        });
     }
 
     if (loading) {
@@ -125,7 +143,9 @@ export default function HallTickets() {
     }
 
     const isAdmin = role === 'admin'
-    const canDownload = published && exams.length > 0 && profile?.roll_number
+    const isCoe = role === 'coe'
+    const isStudent = !isAdmin && !isCoe
+    const canDownload = published && coeApproved && exams.length > 0 && profile?.roll_number
 
     return (
         <div className="space-y-8 fade-in">
@@ -146,15 +166,20 @@ export default function HallTickets() {
             {isAdmin && (
                 <div className="vantage-card p-6 border-blue-100 bg-blue-50/30">
                     <h3 className="font-black text-[#001b5e] mb-2 flex items-center gap-2">
-                        <Send className="w-5 h-5" /> Admin: Publish Hall Tickets
+                        <Send className="w-5 h-5" /> Admin: Generate Hall Tickets
                     </h3>
                     <p className="text-sm text-slate-600 mb-4">
-                        Publish hall tickets for the current exam schedule. Once published, all students can download their own hall ticket only.
+                        Generate hall tickets and send them to the COE (Controller of Examinations) for final approval.
                     </p>
-                    {published ? (
+                    {coeApproved ? (
                         <div className="flex items-center gap-2 text-emerald-600 font-bold">
                             <CheckCircle2 className="w-5 h-5" />
-                            Hall tickets are live. Students can download their tickets.
+                            Hall tickets are live and approved by COE.
+                        </div>
+                    ) : published ? (
+                        <div className="flex items-center gap-2 text-amber-600 font-bold">
+                            <CheckCircle2 className="w-5 h-5" />
+                            Sent to COE. Awaiting final approval.
                         </div>
                     ) : (
                         <button
@@ -162,17 +187,46 @@ export default function HallTickets() {
                             disabled={publishing || exams.length === 0}
                             className="bg-[#001b5e] text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50"
                         >
-                            {publishing ? 'Publishing...' : 'Publish Hall Tickets for All'}
+                            {publishing ? 'Sending...' : 'Send to COE for Approval'}
                         </button>
                     )}
                 </div>
             )}
 
-            {!isAdmin && !published && (
+            {isCoe && (
+                <div className="vantage-card p-6 border-emerald-100 bg-emerald-50/30">
+                    <h3 className="font-black text-emerald-900 mb-2 flex items-center gap-2">
+                        <Shield className="w-5 h-5" /> COE: Approve Hall Tickets
+                    </h3>
+                    <p className="text-sm text-emerald-700 mb-4">
+                        Review and approve the generated hall tickets for final publication to students.
+                    </p>
+                    {coeApproved ? (
+                        <div className="flex items-center gap-2 text-emerald-600 font-bold">
+                            <CheckCircle2 className="w-5 h-5" />
+                            You have approved and published the hall tickets.
+                        </div>
+                    ) : published ? (
+                        <button
+                            onClick={handlePublish}
+                            disabled={publishing}
+                            className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-emerald-700 disabled:opacity-50"
+                        >
+                            {publishing ? 'Approving...' : 'Approve & Publish Hall Tickets'}
+                        </button>
+                    ) : (
+                        <div className="text-sm font-bold text-slate-500">
+                            Admin has not yet generated hall tickets for approval.
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {isStudent && (!published || !coeApproved) && (
                 <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
                     <Lock className="w-16 h-16 text-slate-300" />
-                    <h3 className="text-xl font-black text-[#001b5e]">Hall Tickets Not Yet Published</h3>
-                    <p className="text-slate-400 max-w-sm">Admin will publish hall tickets for the current exam schedule. Once published, you can download your own hall ticket here.</p>
+                    <h3 className="text-xl font-black text-[#001b5e]">Hall Tickets Not Available</h3>
+                    <p className="text-slate-400 max-w-sm">Hall tickets are currently pending generation by Admin or awaiting final approval from the COE.</p>
                 </div>
             )}
 

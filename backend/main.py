@@ -97,6 +97,18 @@ async def login_for_access_token(data: LoginRequest):
     from auth import create_access_token, supabase, ACCESS_TOKEN_EXPIRE_MINUTES
     from datetime import timedelta
     
+    if data.email == "coe@vantage.edu" and data.password == "coe123":
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": "coe@vantage.edu"}, expires_delta=access_token_expires
+        )
+        return {
+            "access_token": access_token, 
+            "token_type": "bearer", 
+            "role": "coe",
+            "full_name": "Controller of Examinations"
+        }
+        
     # Check if user exists in Supabase user_profiles
     res = supabase.table('user_profiles').select('*').eq('email', data.email).single().execute()
     
@@ -116,7 +128,7 @@ async def login_for_access_token(data: LoginRequest):
             raise HTTPException(status_code=401, detail="Incorrect email or password")
     else:
         # Fallback: role-based default passwords for hackathon demo
-        default_passwords = {"admin": "admin123", "seating_manager": "admin123", "club_coordinator": "admin123", "student": "student123"}
+        default_passwords = {"admin": "admin123", "seating_manager": "admin123", "club_coordinator": "admin123", "student": "student123", "coe": "coe123"}
         expected = default_passwords.get(user.get("role", "student"), "student123")
         if data.password != expected:
             raise HTTPException(status_code=401, detail="Incorrect email or password")
@@ -544,14 +556,18 @@ async def hall_ticket_status(current_user: dict = Depends(get_current_user)):
     """Returns whether hall tickets are published (admin has enabled downloads)."""
     from auth import supabase as sb
     try:
-        res = sb.table('hall_ticket_publish').select('id').limit(1).execute()
-        return {"published": bool(res.data and len(res.data) > 0)}
+        res = sb.table('hall_ticket_publish').select('*').limit(1).execute()
+        if res.data and len(res.data) > 0:
+            pub_by = res.data[0].get("published_by")
+            coe_approved = (pub_by == "coe@vantage.edu")
+            return {"published": True, "coe_approved": coe_approved, "published_by": pub_by}
+        return {"published": False, "coe_approved": False}
     except Exception:
-        return {"published": False}
+        return {"published": False, "coe_approved": False}
 
 @app.post("/api/hall_tickets/publish")
 async def publish_hall_tickets(current_user: dict = Depends(get_current_admin)):
-    """Admin only: publish hall tickets so students can download their own."""
+    """Admin or COE: publish hall tickets so students can download their own."""
     from auth import supabase as sb
     from datetime import datetime, timezone
     try:
@@ -563,12 +579,22 @@ async def publish_hall_tickets(current_user: dict = Depends(get_current_admin)):
             sb.table('hall_ticket_publish').insert(row).execute()
         except Exception:
             pass
-    return {"message": "Hall tickets published. Students can now download their own tickets."}
+    return {"message": "Hall tickets publication state updated"}
+    
 # --- STUDENT PROFILE (for hall ticket) ---
 
 @app.get("/api/me/profile")
 async def get_full_profile(current_user: dict = Depends(get_current_user)):
     from auth import supabase as sb
+    if current_user["email"] == "coe@vantage.edu":
+        return {
+            "full_name": "Controller of Examinations",
+            "email": "coe@vantage.edu",
+            "role": "coe",
+            "roll_number": "COE-001",
+            "department": "Administration"
+        }
+        
     try:
         profile = sb.table('user_profiles').select('*').eq('email', current_user['email']).single().execute()
         if not profile.data:

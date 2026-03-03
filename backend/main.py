@@ -12,6 +12,7 @@ from auth import (
     get_current_admin
 )
 
+logging.basicConfig(level=logging.INFO)
 app = FastAPI(title="Integrated Academic AI Backend", version="1.0.0")
 
 # CORS setup
@@ -55,6 +56,10 @@ async def startup_event():
         logging.info("All local ML models pre-loaded successfully.")
     except Exception as e:
         logging.error(f"Error loading models: {e}")
+
+@app.get("/")
+async def root():
+    return {"status": "success", "message": "Integrated Academic AI Backend is running", "docs": "/docs"}
 
 # --- AUTH ROUTES ---
 

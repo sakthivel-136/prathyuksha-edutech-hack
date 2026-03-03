@@ -18,7 +18,8 @@ export default function AcademicCalendar() {
             headers: getAuthHeaders()
 =======
         const token = localStorage.getItem('accessToken')
-        fetch('http://localhost:8000/api/calendar', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        fetch(`${apiUrl}/api/calendar`, {
             headers: { 'Authorization': `Bearer ${token}` }
 >>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
         })

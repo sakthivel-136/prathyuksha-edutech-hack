@@ -17,7 +17,8 @@ export default function ExamSchedule() {
             headers: getAuthHeaders()
 =======
         const token = localStorage.getItem('accessToken')
-        fetch('http://localhost:8000/api/exams', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+        fetch(`${apiUrl}/api/exams`, {
             headers: { 'Authorization': `Bearer ${token}` }
 >>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
         })

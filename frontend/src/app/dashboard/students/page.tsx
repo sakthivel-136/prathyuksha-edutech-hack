@@ -28,7 +28,8 @@ export default function StudentsPage() {
                 headers: getAuthHeaders()
 =======
             const token = Cookies.get("access_token")
-            const res = await fetch("http://127.0.0.1:8000/api/at_risk_students", {
+            const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+            const res = await fetch(`${apiUrl}/api/at_risk_students`, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }

@@ -50,9 +50,11 @@ export default function HallTickets() {
         const token = localStorage.getItem('accessToken')
         const headers = { 'Authorization': `Bearer ${token}` }
 
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
         Promise.all([
-            fetch('http://localhost:8000/api/me/profile', { headers }).then(r => r.json()),
-            fetch('http://localhost:8000/api/exams', { headers }).then(r => r.json()),
+            fetch(`${apiUrl}/api/me/profile`, { headers }).then(r => r.json()),
+            fetch(`${apiUrl}/api/exams`, { headers }).then(r => r.json()),
         ]).then(([prof, ex]) => {
             setProfile(prof)
             setExams(Array.isArray(ex) ? ex : [])

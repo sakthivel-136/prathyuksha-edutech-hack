@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Shield, Lock, Mail, ArrowRight, Eye, EyeOff } from 'lucide-react'
+import { API_BASE } from '@/lib/api'
 
 export default function LoginPage() {
     const [email, setEmail] = useState('')
@@ -18,11 +19,7 @@ export default function LoginPage() {
         setError('')
 
         try {
-<<<<<<< HEAD
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/login`, {
-=======
-            const res = await fetch('http://localhost:8000/api/login', {
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
+            const res = await fetch(`${API_BASE}/api/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })

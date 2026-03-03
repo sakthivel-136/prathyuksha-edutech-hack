@@ -1,23 +1,28 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Clock, MapPin, Inbox, Plus, Trash2, X } from 'lucide-react'
+import { Clock, MapPin, Inbox, Plus, Trash2, X, Edit2 } from 'lucide-react'
 import { API_BASE, getAuthHeaders } from '@/lib/api'
 
 export default function ExamsPage() {
     const [exams, setExams] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [role, setRole] = useState('student')
-    const [showModal, setShowModal] = useState(false)
+
+    // Create Modal State
+    const [showCreateModal, setShowCreateModal] = useState(false)
     const [newExam, setNewExam] = useState({
         course_code: '',
         course_name: '',
         exam_date: '',
         exam_time: '',
-        room: '',
         exam_type: 'End Sem',
         department: 'CSE'
     })
+
+    // Edit Modal State
+    const [showEditModal, setShowEditModal] = useState(false)
+    const [editingExam, setEditingExam] = useState<any>(null)
 
     const fetchExams = () => {
         setLoading(true)
@@ -53,16 +58,15 @@ export default function ExamsPage() {
             const res = await fetch(`${API_BASE}/api/exams`, {
                 method: 'POST',
                 headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify(newExam)
+                body: JSON.stringify({ ...newExam, room: '' }) // Room is allotted later
             })
             if (res.ok) {
-                setShowModal(false)
+                setShowCreateModal(false)
                 setNewExam({
                     course_code: '',
                     course_name: '',
                     exam_date: '',
                     exam_time: '',
-                    room: '',
                     exam_type: 'End Sem',
                     department: 'CSE'
                 })
@@ -71,6 +75,37 @@ export default function ExamsPage() {
         } catch (e) {
             console.error('Failed to create exam')
         }
+    }
+
+    const handleUpdate = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try {
+            const res = await fetch(`${API_BASE}/api/exams/${editingExam.id}`, {
+                method: 'PUT',
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    course_code: editingExam.course_code,
+                    course_name: editingExam.course_name,
+                    exam_date: editingExam.exam_date,
+                    exam_time: editingExam.exam_time,
+                    room: editingExam.room || '',
+                    exam_type: editingExam.exam_type,
+                    department: editingExam.department
+                })
+            })
+            if (res.ok) {
+                setShowEditModal(false)
+                setEditingExam(null)
+                fetchExams()
+            }
+        } catch (e) {
+            console.error('Failed to update exam')
+        }
+    }
+
+    const openEditModal = (exam: any) => {
+        setEditingExam({ ...exam })
+        setShowEditModal(true)
     }
 
     if (loading && exams.length === 0) {
@@ -92,7 +127,7 @@ export default function ExamsPage() {
                 </div>
                 {isAdmin && (
                     <button
-                        onClick={() => setShowModal(true)}
+                        onClick={() => setShowCreateModal(true)}
                         className="bg-[#001b5e] text-white px-6 py-3 rounded-2xl font-black shadow-xl shadow-blue-900/20 flex items-center gap-2 hover:bg-blue-700 transition-all"
                     >
                         <Plus className="w-4 h-4" /> Add Exam
@@ -128,19 +163,28 @@ export default function ExamsPage() {
                                     </div>
                                     <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
                                         <MapPin className="w-4 h-4 text-slate-400" />
-                                        {exam.room || 'TBD'}
+                                        {exam.room || 'Pending Allocation'}
                                     </div>
                                     <span className="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider">
                                         Upcoming
                                     </span>
                                     {isAdmin && (
-                                        <button
-                                            onClick={() => handleDelete(exam.id)}
-                                            className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                                            title="Delete Exam"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => openEditModal(exam)}
+                                                className="p-2 text-slate-300 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                                                title="Edit Exam"
+                                            >
+                                                <Edit2 className="w-5 h-5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(exam.id)}
+                                                className="p-2 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                                                title="Delete Exam"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             </div>
@@ -149,11 +193,11 @@ export default function ExamsPage() {
                 </div>
             )}
 
-            {/* Post Modal */}
-            {showModal && (
+            {/* Create Modal */}
+            {showCreateModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4 fade-in">
                     <div className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl relative">
-                        <button onClick={() => setShowModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800">
+                        <button onClick={() => setShowCreateModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800">
                             <X className="w-6 h-6" />
                         </button>
                         <h2 className="text-2xl font-black text-[#001b5e] mb-6">Schedule Exam</h2>
@@ -186,23 +230,52 @@ export default function ExamsPage() {
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-400">Room</label>
-                                    <input required type="text" value={newExam.room} onChange={e => setNewExam({ ...newExam, room: e.target.value })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="B-101" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-[10px] font-black uppercase text-slate-400">Exam Type</label>
-                                    <select value={newExam.exam_type} onChange={e => setNewExam({ ...newExam, exam_type: e.target.value })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
-                                        <option>Mid Sem</option>
-                                        <option>End Sem</option>
-                                        <option>Lab</option>
-                                    </select>
-                                </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Exam Type</label>
+                                <select value={newExam.exam_type} onChange={e => setNewExam({ ...newExam, exam_type: e.target.value })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
+                                    <option>Mid Sem</option>
+                                    <option>End Sem</option>
+                                    <option>Lab</option>
+                                </select>
                             </div>
+                            <p className="text-xs text-slate-400 italic mb-2">Note: Exam room will be allotted later by the Seating Manager.</p>
 
                             <button type="submit" className="w-full mt-4 bg-[#001b5e] text-white py-4 rounded-xl font-black shadow-xl hover:bg-blue-800 transition-all">
                                 Publish Schedule
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Modal */}
+            {showEditModal && editingExam && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4 fade-in">
+                    <div className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl relative">
+                        <button onClick={() => setShowEditModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-800">
+                            <X className="w-6 h-6" />
+                        </button>
+                        <h2 className="text-2xl font-black text-[#001b5e] mb-6">Edit Exam Details</h2>
+
+                        <form onSubmit={handleUpdate} className="space-y-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Date</label>
+                                    <input required type="date" value={editingExam.exam_date} onChange={e => setEditingExam({ ...editingExam, exam_date: e.target.value })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Time</label>
+                                    <input required type="text" value={editingExam.exam_time} onChange={e => setEditingExam({ ...editingExam, exam_time: e.target.value })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="09:00 AM" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black uppercase text-slate-400">Update Room Allotment</label>
+                                <input type="text" value={editingExam.room || ''} onChange={e => setEditingExam({ ...editingExam, room: e.target.value })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="e.g. B-101 (Leave blank to allocate later)" />
+                            </div>
+
+                            <button type="submit" className="w-full mt-4 bg-[#001b5e] text-white py-4 rounded-xl font-black shadow-xl hover:bg-blue-800 transition-all">
+                                Save Changes
                             </button>
                         </form>
                     </div>

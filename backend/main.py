@@ -297,6 +297,24 @@ async def delete_exam(exam_id: str, current_user: dict = Depends(get_current_adm
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+class ExamUpdate(BaseModel):
+    course_code: str
+    course_name: str
+    exam_date: str
+    exam_time: str
+    room: str
+    exam_type: str
+    department: str
+
+@app.put("/api/exams/{exam_id}")
+async def update_exam(exam_id: str, exam: ExamUpdate, current_user: dict = Depends(get_current_admin)):
+    from auth import supabase as sb
+    try:
+        res = sb.table('exams').update(exam.dict()).eq('id', exam_id).execute()
+        return res.data
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # --- HALL TICKETS: Admin publishes, students download own ---
 
 @app.get("/api/hall_tickets/status")

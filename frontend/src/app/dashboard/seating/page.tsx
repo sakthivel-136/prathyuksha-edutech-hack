@@ -165,7 +165,12 @@ export default function SeatingAllocator() {
                             <Printer className="w-4 h-4" />
                             Print Plan
                         </button>
-                        <button onClick={handleDownload} className="bg-[#001b5e] text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-blue-900/20 flex items-center gap-2">
+                        <button onClick={() => {
+                            const originalTitle = document.title;
+                            document.title = "Seating_Plan_Vantage";
+                            handleDownload();
+                            document.title = originalTitle;
+                        }} className="bg-[#001b5e] text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-blue-900/20 flex items-center gap-2">
                             <Download className="w-4 h-4" />
                             Download PDF
                         </button>

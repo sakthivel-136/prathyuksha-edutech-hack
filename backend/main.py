@@ -288,6 +288,15 @@ async def create_exam(exam: ExamCreate, current_user: dict = Depends(get_current
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.delete("/api/exams/{exam_id}")
+async def delete_exam(exam_id: str, current_user: dict = Depends(get_current_admin)):
+    from auth import supabase as sb
+    try:
+        res = sb.table('exams').delete().eq('id', exam_id).execute()
+        return {"success": True}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
 # --- HALL TICKETS: Admin publishes, students download own ---
 
 @app.get("/api/hall_tickets/status")

@@ -54,6 +54,14 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         if email is None:
             raise credentials_exception
             
+        if email == "coe@vantage.edu":
+            return {
+                "id": "coe-special-id",
+                "email": email,
+                "username": "Controller of Examinations",
+                "role": "coe"
+            }
+            
         profile_res = supabase.table('user_profiles').select('*').eq('email', email).single().execute()
         if not profile_res.data:
             raise credentials_exception
@@ -73,7 +81,7 @@ async def get_current_admin(current_user: dict = Depends(get_current_user)):
     """
     Checks if the validated user has an elevated role (Admin, Seating Manager, Staff).
     """
-    elevated_roles = ["admin", "seating_manager", "club_coordinator"]
+    elevated_roles = ["admin", "seating_manager", "club_coordinator", "coe"]
     if current_user["role"] not in elevated_roles:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, 

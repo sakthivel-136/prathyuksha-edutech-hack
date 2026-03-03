@@ -105,27 +105,37 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* AI Models Status */}
-      <div className="vantage-card p-8">
-        <h2 className="text-xl font-black text-[#001b5e] mb-6">AI Models Status</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { name: 'XGBoost Predictor', acc: '92%', status: 'active' },
-            { name: 'Early Warning RF', acc: '91.9% F1', status: 'active' },
-            { name: 'Isolation Forest', acc: '95%', status: 'active' },
-            { name: 'SVM Classifier', acc: '91%', status: 'active' },
-          ].map((model, i) => (
-            <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Online</span>
+      {/* AI Models Status - Admin Only */}
+      {role === 'admin' && (
+        <div className="vantage-card p-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-black text-[#001b5e]">ML Algorithm Accuracies</h2>
+            <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">Admin View</span>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { name: 'Student Predictor (HistGB)', acc: '96.9% Acc', f1: '0.969 F1', status: 'Online' },
+              { name: 'Early Warning (RF)', acc: '95.7% Acc', f1: '0.919 F1', status: 'Online' },
+              { name: 'Event Conflict (SVM)', acc: '98.2% Acc', f1: '0.975 F1', status: 'Online' },
+              { name: 'Fraud Detection (iForest)', acc: 'Unsupervised', f1: 'Anomaly Detection', status: 'Online' },
+            ].map((model, i) => (
+              <div key={i} className="p-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2 hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+                  <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{model.status}</span>
+                </div>
+                <p className="font-black text-[#001b5e] text-sm leading-tight">{model.name}</p>
+                <div className="pt-2 border-t border-slate-200">
+                  <p className="text-xs font-bold text-slate-500">
+                    <span className="text-emerald-600 font-black">{model.acc}</span>
+                  </p>
+                  <p className="text-[10px] font-bold text-slate-400 mt-0.5">{model.f1}</p>
+                </div>
               </div>
-              <p className="font-black text-[#001b5e] text-sm">{model.name}</p>
-              <p className="text-xs font-bold text-slate-400">Accuracy: <span className="text-blue-600">{model.acc}</span></p>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }

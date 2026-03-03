@@ -1,5 +1,5 @@
 /** Central API config - use for all backend calls */
-export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+export const API_BASE = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000').replace(/\/$/, '')
 
 /** Get auth token - tries localStorage first, then cookie */
 export function getAuthToken(): string | null {

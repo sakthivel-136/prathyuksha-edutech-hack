@@ -1,0 +1,19 @@
+Collecting bcrypt<4.0.0
+  Downloading bcrypt-3.2.2-cp36-abi3-macosx_10_10_universal2.whl.metadata (8.3 kB)
+Collecting cffi>=1.1 (from bcrypt<4.0.0)
+  Using cached cffi-2.0.0-cp314-cp314-macosx_11_0_arm64.whl.metadata (2.6 kB)
+Collecting pycparser (from cffi>=1.1->bcrypt<4.0.0)
+  Using cached pycparser-3.0-py3-none-any.whl.metadata (8.2 kB)
+Downloading bcrypt-3.2.2-cp36-abi3-macosx_10_10_universal2.whl (50 kB)
+Using cached cffi-2.0.0-cp314-cp314-macosx_11_0_arm64.whl (181 kB)
+Using cached pycparser-3.0-py3-none-any.whl (48 kB)
+Installing collected packages: pycparser, cffi, bcrypt
+  Attempting uninstall: bcrypt
+    Found existing installation: bcrypt 5.0.0
+    Uninstalling bcrypt-5.0.0:
+      Successfully uninstalled bcrypt-5.0.0
+
+Successfully installed bcrypt-3.2.2 cffi-2.0.0 pycparser-3.0
+
+[notice] A new release of pip is available: 25.3 -> 26.0.1
+[notice] To update, run: pip install --upgrade pip

@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/Users/rekha/.gemini/antigravity/scratch/academic-management-system/backend/training/00_data_prep.py", line 4, in <module>
+    from sklearn.preprocessing import PolynomialFeatures
+ModuleNotFoundError: No module named 'sklearn'

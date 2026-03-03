@@ -1,0 +1,24 @@
+{
+    "status": "success",
+    "allocated_seats": [
+        {
+            "student_id": "S1",
+            "seat": "A1",
+            "room": "R101"
+        },
+        {
+            "student_id": "S2",
+            "seat": "A2",
+            "room": "R101"
+        },
+        {
+            "student_id": "S3",
+            "seat": "B1",
+            "room": "R101"
+        }
+    ],
+    "metrics": {
+        "satisfaction": 1.0,
+        "clashes": 0
+    }
+}

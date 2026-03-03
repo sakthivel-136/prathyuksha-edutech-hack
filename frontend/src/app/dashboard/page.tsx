@@ -38,26 +38,17 @@ export default function Dashboard() {
     { label: 'FRAUD ALERTS', value: '0', sub: 'All clear', icon: ShieldCheck, color: 'text-violet-600', bg: 'bg-violet-50' },
   ]
 
-<<<<<<< HEAD
   const stats = ['admin', 'seating_manager'].includes(role) ? adminStats : studentStats
 
   const quickLinks = ['admin', 'seating_manager'].includes(role) ? [
-=======
-  const stats = role === 'admin' || role === 'seating_manager' ? adminStats : studentStats
-
-  const quickLinks = role === 'admin' || role === 'seating_manager' ? [
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     { name: 'Generate Seating Plan', desc: 'AI-powered automatic allocation', path: '/dashboard/seating', icon: BarChart2 },
     { name: 'At-Risk Alerts', desc: 'View flagged students', path: '/dashboard/alerts', icon: AlertCircle },
     { name: 'Fraud Detection', desc: 'Monitor hall ticket integrity', path: '/dashboard/fraud', icon: ShieldCheck },
     { name: 'Event Conflicts', desc: 'Schedule optimization', path: '/dashboard/events', icon: CalendarDays },
-<<<<<<< HEAD
   ] : role === 'club_coordinator' ? [
     { name: 'Event Submissions', desc: 'Submit and approve events', path: '/dashboard/events', icon: CalendarDays },
     { name: 'Mind Map NLP', desc: 'Syllabus analysis', path: '/dashboard/mindmap', icon: Brain },
     { name: 'Academic Calendar', desc: 'View calendar events', path: '/dashboard/calendar', icon: CalendarDays },
-=======
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
   ] : [
     { name: 'My Courses', desc: 'View enrolled subjects', path: '/dashboard/courses', icon: BookOpen },
     { name: 'Hall Tickets', desc: 'Generate & download', path: '/dashboard/halltickets', icon: GraduationCap },

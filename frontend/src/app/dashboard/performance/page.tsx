@@ -32,11 +32,7 @@ export default function PerformancePredictor() {
                 ]
             })
             setLoading(false)
-<<<<<<< HEAD
         }, 500)
-=======
-        }, 1500)
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     }
 
     return (

@@ -1,13 +1,7 @@
 "use client"
 
-<<<<<<< HEAD
 import { useState, useEffect } from 'react'
 import {
-=======
-import { useState } from 'react'
-import {
-    AlertTriangle,
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
     UserPlus,
     Mail,
     MessageSquare,
@@ -16,7 +10,6 @@ import {
     Users,
     TrendingDown,
     ArrowUpRight,
-<<<<<<< HEAD
     TrendingUp,
     RefreshCw
 } from 'lucide-react'
@@ -52,17 +45,6 @@ export default function EarlyWarning() {
     }
 
     useEffect(() => { fetchAlerts() }, [])
-=======
-    TrendingUp
-} from 'lucide-react'
-
-export default function EarlyWarning() {
-    const atRisk = [
-        { name: 'John Doe', roll: 'STU102', risk: '85%', reason: 'High absences (12)', trend: 'up' },
-        { name: 'Kavin M', roll: 'STU205', risk: '72%', reason: 'Low study hours (<2h)', trend: 'stable' },
-        { name: 'Swetha P', roll: 'STU311', risk: '64%', reason: 'Past grade volatility', trend: 'down' },
-    ]
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
 
     return (
         <div className="space-y-8 fade-in">
@@ -72,47 +54,10 @@ export default function EarlyWarning() {
                     <h1 className="text-4xl font-black text-[#001b5e]">At-Risk Students Panel</h1>
                 </div>
                 <div className="flex gap-4">
-<<<<<<< HEAD
                     <button onClick={fetchAlerts} disabled={loading} className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-all disabled:opacity-50">
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         Refresh
                     </button>
-=======
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
-                    <button className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-all">
-                        <Mail className="w-4 h-4" />
-                        Batch Messaging
-                    </button>
-                    <button className="bg-rose-600 text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-rose-900/20 active:scale-95 transition-all">
-                        Trigger Interventions
-                    </button>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="vantage-card overflow-hidden">
-                        <div className="p-8 border-b border-slate-100 flex justify-between items-center">
-                            <h2 className="text-xl font-black text-[#001b5e]">Identified Crisis Profiles</h2>
-                            <div className="flex items-center gap-4">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 bg-rose-500 rounded-full"></div>
-                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Random Forest + SMOTE Active</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="divide-y divide-slate-100">
-<<<<<<< HEAD
-                            {loading ? (
-                                <div className="p-12 flex justify-center">
-                                    <div className="w-10 h-10 border-4 border-[#001b5e] border-t-transparent rounded-full animate-spin" />
-                                </div>
-                            ) : (
-                            atRisk.map((student, i) => (
-=======
-                            {atRisk.map((student, i) => (
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                                 <div key={i} className="p-8 hover:bg-slate-50 transition-all flex items-center justify-between group">
                                     <div className="flex items-center gap-6">
                                         <div className="w-16 h-16 bg-white rounded-3xl shadow-sm flex items-center justify-center text-rose-600 border border-slate-100 relative group-hover:scale-110 transition-transform">
@@ -137,12 +82,8 @@ export default function EarlyWarning() {
                                         </button>
                                     </div>
                                 </div>
-<<<<<<< HEAD
                             ))
                             )}
-=======
-                            ))}
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                         </div>
                     </div>
                 </div>

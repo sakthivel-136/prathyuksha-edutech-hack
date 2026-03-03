@@ -2,25 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { BookOpen, Clock, Inbox } from 'lucide-react'
-<<<<<<< HEAD
 import { API_BASE, getAuthHeaders } from '@/lib/api'
-=======
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
-
-export default function Courses() {
-    const [courses, setCourses] = useState<any[]>([])
-    const [loading, setLoading] = useState(true)
-
-    useEffect(() => {
-<<<<<<< HEAD
-        fetch(`${API_BASE}/api/courses`, {
-            headers: getAuthHeaders()
-=======
-        const token = localStorage.getItem('accessToken')
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
-        fetch(`${apiUrl}/api/courses`, {
-            headers: { 'Authorization': `Bearer ${token}` }
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
         })
             .then(r => r.json())
             .then(data => { setCourses(Array.isArray(data) ? data : []); setLoading(false) })

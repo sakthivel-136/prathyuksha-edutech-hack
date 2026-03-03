@@ -34,11 +34,7 @@ export default function FraudDetection() {
                     <button className="bg-white border border-slate-200 p-3 rounded-2xl hover:bg-slate-50 transition-all"><Search className="w-5 h-5 text-slate-400" /></button>
                     <button className="bg-white border border-slate-200 p-3 rounded-2xl hover:bg-slate-50 transition-all"><Filter className="w-5 h-5 text-slate-400" /></button>
                     <button
-<<<<<<< HEAD
                         onClick={() => { setScanning(true); setTimeout(() => setScanning(false), 800); }}
-=======
-                        onClick={() => { setScanning(true); setTimeout(() => setScanning(false), 2000); }}
->>>>>>> 79c451c68c096aafd4b160be6e271f1e8d9434f5
                         className="bg-rose-600 text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-rose-900/20 active:scale-95 transition-all flex items-center gap-2"
                     >
                         {scanning ? "Isolation Forest Scanning..." : "Scan for Anomalies"}

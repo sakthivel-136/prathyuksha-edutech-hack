@@ -17,9 +17,14 @@ ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60
 
 if not SUPABASE_URL or not SUPABASE_KEY:
-    raise Exception("Supabase credentials not found in environment")
-
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    print("WARNING: Supabase credentials not found in environment. Backend will fail on DB calls.")
+    supabase = None
+else:
+    try:
+        supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    except Exception as e:
+        print(f"ERROR: Failed to initialize Supabase client: {e}")
+        supabase = None
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/login")
 

@@ -39,7 +39,7 @@ export default function Sidebar() {
 
     // Academic AI modules
     const academics = [
-        { name: 'Performance Predictor', icon: BarChart2, path: '/dashboard/performance', allowed: ['student', 'admin'] },
+        { name: 'Performance Predictor', icon: BarChart2, path: '/dashboard/performance', allowed: ['student'] },
         { name: 'Early Warning', icon: AlertCircle, path: '/dashboard/alerts', allowed: ['admin', 'seating_manager'] },
         { name: 'Insights & Fairness', icon: BarChart2, path: '/dashboard/inequality', allowed: ['admin'] },
         { name: 'Digital Twin Sim', icon: Users, path: '/dashboard/digital-twin', allowed: ['admin'] },

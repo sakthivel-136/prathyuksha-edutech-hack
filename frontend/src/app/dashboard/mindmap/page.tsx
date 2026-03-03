@@ -76,7 +76,7 @@ export default function MindMapNLP() {
                 },
                 body: formData
             });
-            
+
             if (!res.ok) {
                 setProcessing(false);
                 alert("Server error uploading PDF. Please check backend requirements.");
@@ -202,7 +202,29 @@ export default function MindMapNLP() {
                             <div className="flex gap-2">
                                 <button className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"><ZoomIn className="w-5 h-5" /></button>
                                 <button className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"><Share2 className="w-5 h-5" /></button>
-                                <button className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"><Download className="w-5 h-5" /></button>
+                                <button
+                                    onClick={() => {
+                                        if (complete && results) {
+                                            const element = document.getElementById('mindmap-export-container');
+                                            if (element) {
+                                                import('html2pdf.js').then((html2pdfModule) => {
+                                                    const html2pdf = html2pdfModule.default;
+                                                    const opt = {
+                                                        margin: 10,
+                                                        filename: ((results && results.filename) ? results.filename.replace('.pdf', '') : 'Syllabus') + '_MindMap.pdf',
+                                                        image: { type: 'jpeg' as const, quality: 0.98 },
+                                                        html2canvas: { scale: 2, useCORS: true },
+                                                        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'landscape' as const }
+                                                    };
+                                                    html2pdf().set(opt).from(element).save();
+                                                });
+                                            }
+                                        }
+                                    }}
+                                    className={`p-2.5 rounded-xl border transition-all shadow-sm ${complete && results ? 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100' : 'bg-white border-slate-200 text-slate-400 opacity-50 cursor-not-allowed'}`}
+                                >
+                                    <Download className="w-5 h-5" />
+                                </button>
                             </div>
                         </div>
 
@@ -218,7 +240,7 @@ export default function MindMapNLP() {
                                 </div>
                             </div>
                         ) : complete && results ? (
-                            <div className="flex-1 flex flex-col min-w-[700px] p-10 pt-4 relative group">
+                            <div id="mindmap-export-container" className="flex-1 flex flex-col min-w-[700px] p-10 pt-4 relative group bg-slate-50">
                                 <div className="absolute top-0 bottom-0 left-1/2 w-full bg-[radial-gradient(circle_at_50%_50%,#3b82f605,transparent)] -translate-x-1/2"></div>
                                 <MindMapNode node={results.graph} />
                                 <div className="absolute bottom-4 left-4 right-4 flex justify-between">

@@ -17,6 +17,7 @@
     "axios": "^1.13.6",
     "clsx": "^2.1.1",
     "framer-motion": "^12.34.4",
+    "html2pdf.js": "^0.14.0",
     "js-cookie": "^3.0.5",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.576.0",

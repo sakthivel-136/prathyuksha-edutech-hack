@@ -367,16 +367,18 @@ async def get_attendance_leaderboard(current_user: dict = Depends(get_current_us
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/at_risk_students")
-async def get_at_risk_alerts(current_user: dict = Depends(get_current_admin)):
+async def get_at_risk_alerts(current_user: dict = Depends(get_current_user)):
     """
-    Admin-only route. Returns mock list of at-risk students using the early warning model logic.
+    Returns mock list of at-risk students using the early warning model logic.
     """
-    # In a real app we'd fetch actual student records and run them through MODELS['ew_model']
-    # Returning dummy data for frontend viz.
-    return [
+    admin_roles = ["admin", "seating_manager", "coe"]
+    all_mock = [
         {"id": "STU102", "name": "John Doe", "risk_probability": 0.85, "reason": "High absences, low study time"},
         {"id": "STU205", "name": "Jane Smith", "risk_probability": 0.72, "reason": "Multiple previous failures"}
     ]
+    if current_user["role"] not in admin_roles:
+        return [] # Or return something for the student if we want, but earlier it was admin-only. Let's return the mock data for now.
+    return all_mock
 
 # --- MODULE 3: NLP MIND MAPS ---
 
@@ -614,6 +616,16 @@ async def get_full_profile(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         logging.error(f"Profile fetch error: {e}")
         return {}
+
+@app.get("/api/students")
+async def get_students(current_user: dict = Depends(get_current_admin)):
+    from auth import supabase as sb
+    try:
+        res = sb.table('user_profiles').select('*').eq('role', 'student').execute()
+        return res.data or []
+    except Exception as e:
+        logging.error(f"Students fetch error: {e}")
+        return []
 
 # --- EVENT SUBMISSIONS (club coordinator submits, admin approves) ---
 @app.post("/api/mindmap/upload")

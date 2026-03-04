@@ -9,7 +9,7 @@ export default function DashboardLayout({
     children: React.ReactNode
 }) {
     return (
-        <RoleGuard allowedRoles={['student', 'admin', 'seating_manager', 'club_coordinator']}>
+        <RoleGuard allowedRoles={['student', 'admin', 'seating_manager', 'club_coordinator', 'coe']}>
             <div className="min-h-screen bg-slate-50 flex">
                 <Sidebar />
                 <div className="flex-1 ml-64 flex flex-col">

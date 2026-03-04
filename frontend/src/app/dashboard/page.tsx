@@ -38,7 +38,14 @@ export default function Dashboard() {
     { label: 'FRAUD ALERTS', value: '0', sub: 'All clear', icon: ShieldCheck, color: 'text-violet-600', bg: 'bg-violet-50' },
   ]
 
-  const stats = ['admin', 'seating_manager'].includes(role) ? adminStats : studentStats
+  const coeStats = [
+    { label: 'Exams Scheduled', value: '18', sub: 'Across 4 depts', icon: CalendarDays, color: 'text-blue-600', bg: 'bg-blue-50' },
+    { label: 'Hall Tickets Apprv.', value: '1,240', sub: 'Ready for download', icon: BarChart2, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+    { label: 'Pending Approvals', value: '0', sub: 'All caught up', icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50' },
+    { label: 'Fraud Alerts', value: '0', sub: 'Monitoring active', icon: AlertCircle, color: 'text-rose-600', bg: 'bg-rose-50' },
+  ]
+
+  const stats = ['admin', 'seating_manager'].includes(role) ? adminStats : role === 'coe' ? coeStats : studentStats
 
   const quickLinks = ['admin', 'seating_manager'].includes(role) ? [
     { name: 'Generate Seating Plan', desc: 'AI-powered automatic allocation', path: '/dashboard/seating', icon: BarChart2 },
@@ -49,6 +56,11 @@ export default function Dashboard() {
     { name: 'Event Submissions', desc: 'Submit and approve events', path: '/dashboard/events', icon: CalendarDays },
     { name: 'Mind Map NLP', desc: 'Syllabus analysis', path: '/dashboard/mindmap', icon: Brain },
     { name: 'Academic Calendar', desc: 'View calendar events', path: '/dashboard/calendar', icon: CalendarDays },
+  ] : role === 'coe' ? [
+    { name: 'Approve Hall Tickets', desc: 'Review & sign hall tickets', path: '/dashboard/halltickets', icon: ShieldCheck },
+    { name: 'Exam Schedule', desc: 'Review exam timetables', path: '/dashboard/exams', icon: CalendarDays },
+    { name: 'Anomaly Detection', desc: 'View fraud monitoring', path: '/dashboard/fraud', icon: AlertCircle },
+    { name: 'Insights & Fairness', desc: 'Check academic inequality', path: '/dashboard/inequality', icon: BarChart2 },
   ] : [
     { name: 'My Courses', desc: 'View enrolled subjects', path: '/dashboard/courses', icon: BookOpen },
     { name: 'Hall Tickets', desc: 'Generate & download', path: '/dashboard/halltickets', icon: GraduationCap },
@@ -105,8 +117,8 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* AI Models Status - Admin Only */}
-      {role === 'admin' && (
+      {/* AI Models Status - Admin & COE */}
+      {['admin', 'coe'].includes(role) && (
         <div className="vantage-card p-8 bg-slate-900 border-slate-800 text-white relative overflow-hidden">
           <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
           <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
@@ -119,7 +131,7 @@ export default function Dashboard() {
               </h2>
               <p className="text-xs font-bold text-slate-400 mt-2 tracking-widest uppercase">Live Production Models • Evaluated on Test Set</p>
             </div>
-            <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.2)]">Admin View</span>
+            <span className="bg-blue-500/20 text-blue-300 border border-blue-500/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(59,130,246,0.2)]">Oversight View</span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">

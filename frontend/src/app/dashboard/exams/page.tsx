@@ -139,7 +139,7 @@ export default function ExamsPage() {
                 <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
                     <Inbox className="w-16 h-16 text-slate-200" />
                     <h3 className="text-xl font-black text-[#001b5e]">No Exams Scheduled</h3>
-                    <p className="text-slate-400 max-w-sm">No exam schedule has been published yet. Your admin will update this when the schedule is ready.</p>
+                    <p className="text-slate-400 max-w-sm">No exam schedule has been published yet. Check back later.</p>
                 </div>
             ) : (
                 <div className="vantage-card overflow-hidden">

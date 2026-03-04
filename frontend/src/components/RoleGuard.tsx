@@ -5,10 +5,11 @@ import { usePathname, useRouter } from 'next/navigation'
 
 /** Routes each role can access - must match Sidebar allowed roles */
 const ROLE_ROUTES: Record<string, string[]> = {
-  student: ['/dashboard', '/dashboard/courses', '/dashboard/exams', '/dashboard/halltickets', '/dashboard/performance', '/dashboard/mindmap', '/dashboard/recommender', '/dashboard/calendar', '/dashboard/events'],
-  admin: ['/dashboard', '/dashboard/courses', '/dashboard/exams', '/dashboard/halltickets', '/dashboard/performance', '/dashboard/alerts', '/dashboard/students', '/dashboard/mindmap', '/dashboard/seating', '/dashboard/fraud', '/dashboard/events', '/dashboard/recommender', '/dashboard/calendar'],
+  student: ['/dashboard', '/dashboard/courses', '/dashboard/exams', '/dashboard/halltickets', '/dashboard/performance', '/dashboard/mindmap', '/dashboard/recommender', '/dashboard/calendar', '/dashboard/events', '/dashboard/alerts'],
+  admin: ['/dashboard', '/dashboard/courses', '/dashboard/exams', '/dashboard/halltickets', '/dashboard/performance', '/dashboard/alerts', '/dashboard/students', '/dashboard/mindmap', '/dashboard/seating', '/dashboard/fraud', '/dashboard/events', '/dashboard/recommender', '/dashboard/calendar', '/dashboard/inequality'],
   seating_manager: ['/dashboard', '/dashboard/exams', '/dashboard/alerts', '/dashboard/students', '/dashboard/mindmap', '/dashboard/seating', '/dashboard/events', '/dashboard/calendar'],
   club_coordinator: ['/dashboard', '/dashboard/mindmap', '/dashboard/events', '/dashboard/calendar'],
+  coe: ['/dashboard', '/dashboard/courses', '/dashboard/exams', '/dashboard/halltickets', '/dashboard/alerts', '/dashboard/mindmap', '/dashboard/seating', '/dashboard/fraud', '/dashboard/calendar', '/dashboard/inequality'],
 }
 
 function isPathAllowed(path: string, role: string): boolean {

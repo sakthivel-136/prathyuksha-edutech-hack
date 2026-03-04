@@ -83,6 +83,11 @@ export default function EarlyWarning() {
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         Refresh
                     </button>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-8">
                     <div className="vantage-card overflow-hidden">
                         <div className="divide-y divide-slate-100">
                             {atRisk.length === 0 ? (

@@ -16,6 +16,14 @@ import {
 export default function PerformancePredictor() {
     const [prediction, setPrediction] = useState<any>(null)
     const [loading, setLoading] = useState(false)
+    const [features, setFeatures] = useState({
+        g1: '15.0',
+        g2: '16.0',
+        studyTime: '3',
+        pastFailures: '0',
+        absences: '2',
+        internetAccess: 'Yes'
+    })
 
     const handlePredict = () => {
         setLoading(true)
@@ -58,18 +66,31 @@ export default function PerformancePredictor() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {[
-                                { label: 'G1 Score', val: '15.0' },
-                                { label: 'G2 Score', val: '16.0' },
-                                { label: 'Study Time Weekly', val: '3 (5-10h)' },
-                                { label: 'Past Failures', val: '0' },
-                                { label: 'Absences', val: '2' },
-                                { label: 'Internet Access', val: 'Yes' },
+                                { id: 'g1', label: 'G1 Score', type: 'text', val: features.g1 },
+                                { id: 'g2', label: 'G2 Score', type: 'text', val: features.g2 },
+                                { id: 'studyTime', label: 'Study Time Weekly', type: 'text', val: features.studyTime },
+                                { id: 'pastFailures', label: 'Past Failures', type: 'text', val: features.pastFailures },
+                                { id: 'absences', label: 'Absences', type: 'text', val: features.absences },
+                                { id: 'internetAccess', label: 'Internet Access', type: 'select', options: ['Yes', 'No'], val: features.internetAccess },
                             ].map((field, i) => (
                                 <div key={i} className="space-y-2">
                                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">{field.label}</label>
-                                    <div className="bg-slate-50 border border-slate-200 p-4 rounded-xl font-bold text-[#001b5e]">
-                                        {field.val}
-                                    </div>
+                                    {field.type === 'select' ? (
+                                        <select
+                                            value={field.val}
+                                            onChange={(e) => setFeatures({ ...features, [field.id]: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl font-bold text-[#001b5e] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        >
+                                            {field.options?.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                                        </select>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={field.val}
+                                            onChange={(e) => setFeatures({ ...features, [field.id]: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-200 p-4 rounded-xl font-bold text-[#001b5e] focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                        />
+                                    )}
                                 </div>
                             ))}
                         </div>

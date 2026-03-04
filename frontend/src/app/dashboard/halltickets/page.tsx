@@ -21,6 +21,8 @@ export default function HallTickets() {
     const [loading, setLoading] = useState(true)
     const [publishing, setPublishing] = useState(false)
     const [role, setRole] = useState('student')
+    const [viewAll, setViewAll] = useState(false)
+    const [allStudents, setAllStudents] = useState<any[]>([])
 
     useEffect(() => {
         const headers = getAuthHeaders()
@@ -60,6 +62,20 @@ export default function HallTickets() {
         } finally {
             setPublishing(false)
         }
+    }
+
+    const handleViewAll = async () => {
+        if (!viewAll && allStudents.length === 0) {
+            setPublishing(true)
+            try {
+                const res = await fetch(`${API_BASE}/api/students`, { headers: getAuthHeaders() })
+                const data = await res.json()
+                setAllStudents(data)
+            } finally {
+                setPublishing(false)
+            }
+        }
+        setViewAll(!viewAll)
     }
 
     const handleDownload = () => {
@@ -110,7 +126,7 @@ export default function HallTickets() {
         </div>
         <div class="seal">
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Student Signature</div></div>
-          ${coeApproved ? '<div class="seal-item" style="color:#10b981;font-weight:900;text-transform:uppercase;font-size:14px;">✅ APPROVED BY COE</div>' : ''}
+          ${(coeApproved && role === 'student') ? '<div class="seal-item" style="color:#10b981;font-weight:900;text-transform:uppercase;font-size:14px;">✅ APPROVED BY COE</div>' : ''}
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Controller of Examinations</div></div>
         </div>
         <div class="footer">Computer-generated document verified by HMAC-SHA256 | Generated: ${new Date().toLocaleString()} | Vantage v1.0</div>
@@ -202,18 +218,34 @@ export default function HallTickets() {
                         Review and approve the generated hall tickets for final publication to students.
                     </p>
                     {coeApproved ? (
-                        <div className="flex items-center gap-2 text-emerald-600 font-bold">
-                            <CheckCircle2 className="w-5 h-5" />
-                            You have approved and published the hall tickets.
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-2 text-emerald-600 font-bold">
+                                <CheckCircle2 className="w-5 h-5" />
+                                You have approved and published the hall tickets.
+                            </div>
+                            <button
+                                onClick={handleViewAll}
+                                className="bg-white text-emerald-700 border border-emerald-200 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-emerald-50 transition-all"
+                            >
+                                {viewAll ? 'Back to Dashboard' : 'View All Student Hall Tickets'}
+                            </button>
                         </div>
                     ) : published ? (
-                        <button
-                            onClick={handlePublish}
-                            disabled={publishing}
-                            className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-emerald-700 disabled:opacity-50"
-                        >
-                            {publishing ? 'Approving...' : 'Approve & Publish Hall Tickets'}
-                        </button>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={handlePublish}
+                                disabled={publishing}
+                                className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                                {publishing ? 'Approving...' : 'Approve & Publish Hall Tickets'}
+                            </button>
+                            <button
+                                onClick={handleViewAll}
+                                className="bg-white text-emerald-700 border border-emerald-200 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-emerald-50 transition-all"
+                            >
+                                {viewAll ? 'Back' : 'Preview Student Hall Tickets'}
+                            </button>
+                        </div>
                     ) : (
                         <div className="text-sm font-bold text-slate-500">
                             Admin has not yet generated hall tickets for approval.
@@ -238,7 +270,7 @@ export default function HallTickets() {
                 </div>
             )}
 
-            {canDownload && (
+            {canDownload && !viewAll && (
                 <div className="space-y-8">
                     <div className="vantage-card overflow-hidden">
                         <div className="bg-[#001b5e] p-8 text-white flex justify-between items-center">
@@ -320,6 +352,98 @@ export default function HallTickets() {
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            )}
+
+            {viewAll && isCoe && allStudents.length > 0 && (
+                <div className="space-y-12 fade-in">
+                    <h2 className="text-2xl font-black text-[#001b5e] border-b pb-4">Preview: All Student Hall Tickets</h2>
+                    <div className="space-y-12">
+                        {allStudents.map((student: any) => {
+                            const studentQrData = `ROLL:${student.roll_number}|${student.full_name}|${student.department}|${student.year_of_study}`
+                            const studentQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(studentQrData)}`
+                            return (
+                                <div key={student.id} className="vantage-card overflow-hidden shadow-lg border-2">
+                                    <div className="bg-[#001b5e] p-8 text-white flex justify-between items-center">
+                                        <div>
+                                            <h2 className="text-2xl font-black tracking-wider">VANTAGE</h2>
+                                            <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mt-1">Integrated Academic & Examination Management</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="text-xl font-black">HALL TICKET</p>
+                                            <p className="text-blue-300 text-xs font-bold">Academic Year 2025-26</p>
+                                        </div>
+                                    </div>
+                                    <div className="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 border-b border-slate-100">
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Name</p>
+                                            <p className="text-lg font-black text-[#001b5e] mt-1">{student.full_name}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Roll Number</p>
+                                            <p className="text-lg font-black text-[#001b5e] mt-1">{student.roll_number}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</p>
+                                            <p className="text-lg font-black text-[#001b5e] mt-1">{student.department}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Year / Section</p>
+                                            <p className="text-lg font-black text-[#001b5e] mt-1">Year {student.year_of_study} / {student.section || 'A'}</p>
+                                        </div>
+                                    </div>
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full">
+                                            <thead>
+                                                <tr className="bg-[#001b5e] text-white">
+                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Code</th>
+                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Subject</th>
+                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Date</th>
+                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Time</th>
+                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Room</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {exams.map((exam: any, i: number) => (
+                                                    <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-all">
+                                                        <td className="px-6 py-4 font-black text-[#001b5e]">{exam.course_code}</td>
+                                                        <td className="px-6 py-4 font-medium text-slate-700">{exam.course_name}</td>
+                                                        <td className="px-6 py-4 font-bold text-slate-600 flex items-center gap-2"><Calendar className="w-3 h-3" />{exam.exam_date}</td>
+                                                        <td className="px-6 py-4 font-bold text-slate-600">{exam.exam_time}</td>
+                                                        <td className="px-6 py-4"><span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-sm font-black">{exam.room}</span></td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className="p-8 flex items-center justify-between bg-slate-50 border-b border-t-slate-200">
+                                        <div className="flex items-center gap-6">
+                                            <div className="w-32 h-32 bg-white border-2 border-slate-200 rounded-xl flex items-center justify-center overflow-hidden">
+                                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                <img src={studentQrUrl} alt="QR Code" width={120} height={120} />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <p className="text-sm font-black text-[#001b5e]">QR Code – Scan to verify</p>
+                                                <p className="text-[10px] text-slate-400 font-medium">Roll Number: <strong className="text-[#001b5e]">{student.roll_number}</strong></p>
+                                            </div>
+                                        </div>
+                                        <div className="text-center">
+                                            <div className="flex justify-between gap-16 mt-8 w-[400px]">
+                                                <div className="text-center w-full">
+                                                    <div className="border-t border-slate-400 mb-2"></div>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Student Signature</p>
+                                                </div>
+                                                <div className="text-center w-full">
+                                                    <div className="border-t border-slate-400 mb-2"></div>
+                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Controller of Examinations</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        })}
                     </div>
                 </div>
             )}

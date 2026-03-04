@@ -43,7 +43,8 @@ CREATE TABLE IF NOT EXISTS public.user_profiles (
           'student'::text,
           'admin'::text,
           'seating_manager'::text,
-          'club_coordinator'::text
+          'club_coordinator'::text,
+          'coe'::text
         ]
       )
     )

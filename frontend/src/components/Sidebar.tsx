@@ -30,21 +30,21 @@ export default function Sidebar() {
 
     // Core menu - visible based on role
     const coreMenu = [
-        { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator'] },
-        { name: 'My Courses', icon: BookOpen, path: '/dashboard/courses', allowed: ['student', 'admin'] },
-        { name: 'Exam Schedule', icon: CalendarDays, path: '/dashboard/exams', allowed: ['student', 'admin', 'seating_manager'] },
-        { name: 'Hall Tickets', icon: Ticket, path: '/dashboard/halltickets', allowed: ['student', 'admin'] },
-        { name: 'Academic Calendar', icon: CalendarDays, path: '/dashboard/calendar', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator'] },
+        { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator', 'coe'] },
+        { name: 'My Courses', icon: BookOpen, path: '/dashboard/courses', allowed: ['student', 'admin', 'coe'] },
+        { name: 'Exam Schedule', icon: CalendarDays, path: '/dashboard/exams', allowed: ['student', 'admin', 'seating_manager', 'coe'] },
+        { name: 'Hall Tickets', icon: Ticket, path: '/dashboard/halltickets', allowed: ['student', 'admin', 'coe'] },
+        { name: 'Academic Calendar', icon: CalendarDays, path: '/dashboard/calendar', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator', 'coe'] },
     ]
 
     // Academic AI modules
     const academics = [
         { name: 'Performance Predictor', icon: BarChart2, path: '/dashboard/performance', allowed: ['student'] },
-        { name: 'Early Warning', icon: AlertCircle, path: '/dashboard/alerts', allowed: ['admin', 'seating_manager'] },
-        { name: 'Insights & Fairness', icon: BarChart2, path: '/dashboard/inequality', allowed: ['admin'] },
-        { name: 'Mind Map NLP', icon: Brain, path: '/dashboard/mindmap', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator'] },
-        { name: 'Seating Allocator', icon: Grid, path: '/dashboard/seating', allowed: ['admin', 'seating_manager'] },
-        { name: 'Fraud Detection', icon: ShieldCheck, path: '/dashboard/fraud', allowed: ['admin'] },
+        { name: 'Early Warning', icon: AlertCircle, path: '/dashboard/alerts', allowed: ['admin', 'seating_manager', 'coe', 'student'] },
+        { name: 'Insights & Fairness', icon: BarChart2, path: '/dashboard/inequality', allowed: ['admin', 'coe'] },
+        { name: 'Mind Map NLP', icon: Brain, path: '/dashboard/mindmap', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator', 'coe'] },
+        { name: 'Seating Allocator', icon: Grid, path: '/dashboard/seating', allowed: ['admin', 'seating_manager', 'coe'] },
+        { name: 'Fraud Detection', icon: ShieldCheck, path: '/dashboard/fraud', allowed: ['admin', 'coe'] },
         { name: 'Submit Local Event', icon: CalendarDays, path: '/dashboard/events', allowed: ['student', 'admin', 'club_coordinator'] },
         { name: 'Study Recommender', icon: Sparkles, path: '/dashboard/recommender', allowed: ['student', 'admin'] },
     ]

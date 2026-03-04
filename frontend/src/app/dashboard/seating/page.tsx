@@ -288,6 +288,35 @@ export default function SeatingAllocator() {
                                 </div>
                             </div>
 
+                            <div className="space-y-4">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Year Combination</label>
+                                <div className="flex flex-col gap-3">
+                                    {config.examType === 'Assessment Exam' ? (
+                                        <>
+                                            <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+                                                <input type="radio" name="yearCombo" defaultChecked className="w-4 h-4 accent-[#001b5e]" />
+                                                <span className="text-sm font-bold text-slate-700">3rd Year + 2nd Year Split</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+                                                <input type="radio" name="yearCombo" className="w-4 h-4 accent-[#001b5e]" />
+                                                <span className="text-sm font-bold text-slate-700">4th Year + 1st Year Split</span>
+                                            </label>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+                                                <input type="radio" name="yearCombo" defaultChecked className="w-4 h-4 accent-[#001b5e]" />
+                                                <span className="text-sm font-bold text-slate-700">Standard Sequential Allocation</span>
+                                            </label>
+                                            <label className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50 cursor-pointer hover:bg-slate-100">
+                                                <input type="radio" name="yearCombo" className="w-4 h-4 accent-[#001b5e]" />
+                                                <span className="text-sm font-bold text-slate-700">Cross-Department Mixing</span>
+                                            </label>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Room Capacity</label>
                                 <input

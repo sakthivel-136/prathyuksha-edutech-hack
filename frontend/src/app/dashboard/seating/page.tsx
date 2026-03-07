@@ -214,7 +214,7 @@ export default function SeatingAllocator() {
 
     const handleAllocate = () => {
         if (role !== 'coe') {
-            alert("Only Controller of Examinations (COE) can generate and publish seating plans.");
+            alert("Only Controller of Examinations (COE) can generate and issue seating plans.");
             return;
         }
         setAllocating(true)
@@ -454,7 +454,7 @@ export default function SeatingAllocator() {
                 body: JSON.stringify(payload)
             })
             if (res.ok) {
-                alert('Seating plan saved and published successfully!')
+                alert('Seating plan saved and issued successfully!')
                 fetchPlanHistory()
             } else if (res.status === 401) {
                 // Stale token - clear and redirect to login
@@ -611,7 +611,7 @@ export default function SeatingAllocator() {
                                         {deleting ? 'Deleting...' : <><Trash2 className="w-4 h-4" /> Delete Plan</>}
                                     </button>
                                     <button onClick={handleSave} disabled={saving} className="bg-emerald-600 text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-emerald-900/20 flex items-center gap-2 hover:bg-emerald-700 transition-all">
-                                        {saving ? 'Publishing...' : 'Publish to Portal'}
+                                        {saving ? 'Issuing...' : 'Issue to Portal'}
                                     </button>
                                 </>
                             )}

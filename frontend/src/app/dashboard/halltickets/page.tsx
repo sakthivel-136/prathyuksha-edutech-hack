@@ -67,7 +67,7 @@ export default function HallTickets() {
     }
 
     const handleUnpublish = async () => {
-        if (!confirm('Are you sure you want to unpublish/reset all hall tickets? This will also clear seating results.')) return
+        if (!confirm('Are you sure you want to revoke/reset all hall tickets? This will also clear seating results.')) return
         setPublishing(true)
         try {
             const res = await fetch(`${API_BASE}/api/hall_tickets/unpublish`, {
@@ -75,7 +75,7 @@ export default function HallTickets() {
                 headers: getAuthHeaders()
             })
             if (res.ok) {
-                alert("Hall tickets unpublished and reset successfully.")
+                alert("Hall tickets revoked and reset successfully.")
                 setPublished(false)
                 setCoeApproved(false)
                 setPublications([])
@@ -214,7 +214,7 @@ export default function HallTickets() {
             {isAdmin && (
                 <div className="lumina-card p-6 border-blue-100 bg-blue-50/30">
                     <h3 className="font-black text-[#001b5e] mb-2 flex items-center gap-2">
-                        <Send className="w-5 h-5" /> Admin: Publish Hall Tickets by Scope
+                        <Send className="w-5 h-5" /> Admin: Issue Hall Tickets by Scope
                     </h3>
 
                     <div className="space-y-4 mb-6">
@@ -252,13 +252,13 @@ export default function HallTickets() {
                             ))}
                         </div>
                         <button onClick={handlePublish} disabled={publishing} className="bg-[#001b5e] text-white px-8 py-3 rounded-2xl font-black shadow-xl w-full sm:w-auto mt-2">
-                            {publishing ? 'Publishing...' : 'Publish Selected Scope'}
+                            {publishing ? 'Issuing...' : 'Issue Selected Scope'}
                         </button>
                     </div>
 
                     <div className="flex items-center justify-between mt-6">
                         <div className="space-y-2">
-                            <h4 className="text-xs font-black text-slate-500 uppercase">Currently Published Scopes:</h4>
+                            <h4 className="text-xs font-black text-slate-500 uppercase">Currently Issued Scopes:</h4>
                             {publications.length === 0 ? (
                                 <p className="text-sm font-bold text-slate-400">None</p>
                             ) : (
@@ -274,7 +274,7 @@ export default function HallTickets() {
                         </div>
                         {published && (
                             <button onClick={handleUnpublish} disabled={publishing} className="text-rose-600 font-bold text-xs hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-rose-100 disabled:opacity-50">
-                                <Lock className="w-3 h-3" /> {publishing ? 'Processing...' : 'Unpublish/Reset All'}
+                                <Lock className="w-3 h-3" /> {publishing ? 'Processing...' : 'Revoke/Reset All'}
                             </button>
                         )}
                     </div>
@@ -284,7 +284,7 @@ export default function HallTickets() {
             {isCoe && (
                 <div className="lumina-card p-6 border-emerald-100 bg-emerald-50/30">
                     <h3 className="font-black text-emerald-900 mb-2 flex items-center gap-2">
-                        <Shield className="w-5 h-5" /> COE approval & Publishing
+                        <Shield className="w-5 h-5" /> COE approval & Issuance
                     </h3>
 
                     <div className="space-y-4 mb-6">
@@ -322,13 +322,13 @@ export default function HallTickets() {
                             ))}
                         </div>
                         <button onClick={handlePublish} disabled={publishing} className="bg-emerald-600 shadow-lg shadow-emerald-200 text-white px-8 py-3 rounded-2xl font-black w-full sm:w-auto mt-2">
-                            {publishing ? 'Publishing...' : 'Approve & Publish Scope'}
+                            {publishing ? 'Issuing...' : 'Approve & Issue Scope'}
                         </button>
                     </div>
 
                     <div className="flex items-center justify-between mt-6">
                         <div className="space-y-2">
-                            <h4 className="text-xs font-black text-slate-500 uppercase">Currently Published Scopes:</h4>
+                            <h4 className="text-xs font-black text-slate-500 uppercase">Currently Issued Scopes:</h4>
                             {publications.length === 0 ? (
                                 <p className="text-sm font-bold text-slate-400">None</p>
                             ) : (
@@ -339,7 +339,7 @@ export default function HallTickets() {
                                                 <p className="font-black text-[#001b5e] text-xs uppercase">
                                                     {p.department || 'ALL'}, Yr {p.year_of_study || 'ALL'}, Sem {p.semester || 'ALL'}
                                                 </p>
-                                                <p className="text-[10px] text-slate-400 font-bold">BY: {p.published_by}</p>
+                                                <p className="text-[10px] text-slate-400 font-bold">BY: {p.issued_by || p.published_by}</p>
                                             </div>
                                             <div className="flex items-center gap-2">
                                                 {p.is_coe_approved ? (
@@ -354,13 +354,13 @@ export default function HallTickets() {
                                                                 headers: getAuthHeaders()
                                                             })
                                                             if (res.ok) {
-                                                                alert("Published Successfully!");
+                                                                alert("Issued Successfully!");
                                                                 window.location.reload();
                                                             }
                                                         }}
                                                         className="bg-emerald-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-100"
                                                     >
-                                                        Approve & Publish
+                                                        Approve & Issue
                                                     </button>
                                                 )}
                                             </div>
@@ -371,7 +371,7 @@ export default function HallTickets() {
                         </div>
                         {published && (
                             <button onClick={handleUnpublish} disabled={publishing} className="text-rose-600 font-bold text-xs hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-rose-100 disabled:opacity-50">
-                                <Lock className="w-3 h-3" /> {publishing ? 'Processing...' : 'Unpublish/Reset All'}
+                                <Lock className="w-3 h-3" /> {publishing ? 'Processing...' : 'Revoke/Reset All'}
                             </button>
                         )}
                     </div>

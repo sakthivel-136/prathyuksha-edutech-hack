@@ -661,7 +661,8 @@ async def get_at_risk_alerts(current_user: dict = Depends(get_current_user)):
             
             if base_risk > 0.6: # Threshold for at-risk
                 risk_list.append({
-                    "id": s['roll_number'] or s['id'],
+                    "id": s['id'],
+                    "roll": s['roll_number'],
                     "name": s['full_name'],
                     "risk_probability": min(0.99, base_risk),
                     "reason": f"{len(s_complaints)} recent teacher complaints logged." if s_complaints else "Academic variance",
@@ -672,7 +673,7 @@ async def get_at_risk_alerts(current_user: dict = Depends(get_current_user)):
             return sorted(risk_list, key=lambda x: x['risk_probability'], reverse=True)
             
         if students:
-             return [{"id": s['roll_number'] or s['id'], "name": s['full_name'], "risk_probability": 0.85, "reason": "Academic variance"} for s in students[:3]]
+             return [{"id": s['id'], "roll": s['roll_number'], "name": s['full_name'], "risk_probability": 0.85, "reason": "Academic variance"} for s in students[:4]]
     except Exception as e:
         logging.error(f"Risk enrichment error: {e}")
         pass
@@ -685,6 +686,8 @@ async def get_at_risk_alerts(current_user: dict = Depends(get_current_user)):
 # --- COUNSELING SCHEDULES ---
 
 class ScheduleCreate(BaseModel):
+    student_id: str
+    student_name: str
     staff_name: str
     event_date: str
     event_time: str
@@ -693,8 +696,8 @@ class ScheduleCreate(BaseModel):
 async def create_schedule(data: ScheduleCreate, current_user: dict = Depends(get_current_user)):
     from auth import supabase as sb
     row = {
-        "student_id": current_user["id"],
-        "student_name": current_user["username"],
+        "student_id": data.student_id,
+        "student_name": data.student_name,
         "staff_name": data.staff_name,
         "event_date": data.event_date,
         "event_time": data.event_time,
@@ -725,7 +728,7 @@ class ScheduleAction(BaseModel):
 @app.post("/api/schedule/action")
 async def schedule_action(data: ScheduleAction, current_user: dict = Depends(get_current_admin)):
     from auth import supabase as sb
-    status = data.action
+    status = data.action.lower()
     try:
         res = sb.table('counseling_schedules').update({"status": status}).eq('id', data.schedule_id).execute()
         return {"success": True, "data": res.data}
@@ -733,10 +736,13 @@ async def schedule_action(data: ScheduleAction, current_user: dict = Depends(get
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/api/schedule/history")
-async def get_schedule_history(current_user: dict = Depends(get_current_admin)):
+async def get_schedule_history(current_user: dict = Depends(get_current_user)):
     from auth import supabase as sb
     try:
-        res = sb.table('counseling_schedules').select('*').eq('status', 'success').execute()
+        if current_user["role"] in ["admin", "coe"]:
+            res = sb.table('counseling_schedules').select('*').eq('status', 'success').execute()
+        else:
+            res = sb.table('counseling_schedules').select('*').eq('student_id', current_user["id"]).eq('status', 'success').execute()
         return res.data or []
     except Exception as e:
         return []
@@ -1018,8 +1024,8 @@ async def get_exams(current_user: dict = Depends(get_current_user), year: int = 
             return res.data or []
         
         # 2. Student Logic: Current subjects + Arrears - Passed subjects
-        # a. Get all exams in student department
-        all_exams = sb.table('exams').select('*').eq('department', user_dept).execute().data or []
+        # a. Get all exams in student department and year
+        all_exams = sb.table('exams').select('*').eq('department', user_dept).eq('year_of_study', user_year).execute().data or []
         
         # b. Get passed course IDs
         passed_res = sb.table('student_results').select('course_id').eq('student_id', current_user['id']).eq('status', 'Pass').execute()

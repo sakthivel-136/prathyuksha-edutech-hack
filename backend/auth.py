@@ -59,7 +59,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
                 "id": "coe-special-id",
                 "email": email,
                 "username": "Controller of Examinations",
-                "role": "coe"
+                "role": "coe",
+                "roll_number": "COE"
             }
             
         profile_res = supabase.table('user_profiles').select('*').eq('email', email).single().execute()
@@ -70,7 +71,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             "id": profile_res.data.get("id"),
             "email": profile_res.data.get("email"),
             "username": profile_res.data.get("full_name", "User"),
-            "role": profile_res.data.get("role", "student")
+            "role": profile_res.data.get("role", "student"),
+            "roll_number": profile_res.data.get("roll_number")
         }
 
     except Exception as e:

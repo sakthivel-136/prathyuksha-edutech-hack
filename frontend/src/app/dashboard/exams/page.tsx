@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Clock, MapPin, Inbox, Plus, Trash2, X, Edit2 } from 'lucide-react'
+import { Clock, MapPin, Inbox, Plus, Trash2, X, Edit2, Calendar } from 'lucide-react'
 import { API_BASE, getAuthHeaders } from '@/lib/api'
 
 export default function ExamsPage() {
@@ -73,7 +73,9 @@ export default function ExamsPage() {
                 headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ...newExam, room: '' })
             })
+            const result = await res.json();
             if (res.ok) {
+                alert('Exam scheduled successfully!')
                 setShowCreateModal(false)
                 setNewExam({
                     course_code: '',
@@ -87,9 +89,13 @@ export default function ExamsPage() {
                     semester: 1
                 })
                 fetchExams()
+            } else {
+                console.error('Exam Creation Error:', result);
+                alert(`Failed: ${result.detail || 'Check server logs'}`);
             }
         } catch (e) {
-            console.error('Failed to create exam')
+            console.error('Network Error:', e);
+            alert('Failed to schedule exam: Network error');
         }
     }
 

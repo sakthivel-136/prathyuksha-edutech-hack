@@ -2,17 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import {
-    UserPlus,
-    Mail,
-    MessageSquare,
-    ChevronRight,
-    ShieldAlert,
-    Users,
-    TrendingDown,
-    ArrowUpRight,
-    TrendingUp,
-    RefreshCw,
-    CalendarDays
+    AlertTriangle, TrendingUp, TrendingDown, UserPlus, History, Calendar as CalendarIcon, Clock, ChevronRight, CheckCircle2, RotateCcw, ShieldAlert, Calendar, Mail, MessageSquare, Users, ArrowUpRight, RefreshCw, CalendarDays
 } from 'lucide-react'
 import { API_BASE, getAuthHeaders } from '@/lib/api'
 
@@ -79,32 +69,42 @@ export default function EarlyWarning() {
             const res = await fetch(`${API_BASE}/api/schedule/active`, { headers: getAuthHeaders() })
             if (res.ok) setActiveSchedules(await res.json())
 
-            if (localStorage.getItem('userRole') !== 'student') {
-                const hRes = await fetch(`${API_BASE}/api/schedule/history`, { headers: getAuthHeaders() })
-                if (hRes.ok) setHistory(await hRes.json())
-            }
+            const hRes = await fetch(`${API_BASE}/api/schedule/history`, { headers: getAuthHeaders() })
+            if (hRes.ok) setHistory(await hRes.json())
         } catch (e) { console.error(e) }
     }
 
     const handleScheduleCounseling = async (student: any, staff: string, date: string, time: string) => {
+        if (!student?.id) {
+            alert('Error: Student details missing. Please refresh and try again.');
+            return;
+        }
         setIsSubmitting(true)
         try {
+            console.log('Scheduling for student:', student.id, student.name);
             const res = await fetch(`${API_BASE}/api/schedule/create`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                 body: JSON.stringify({
+                    student_id: student.id,
+                    student_name: student.name,
                     staff_name: staff,
                     event_date: date,
                     event_time: time
                 })
             })
+            const result = await res.json();
             if (res.ok) {
                 alert('Counseling scheduled successfully!')
                 setSelectedStudent(null)
                 fetchSchedules()
+            } else {
+                console.error('Schedule Error:', result);
+                alert(`Failed to schedule: ${result.detail || 'Unknown error'}`);
             }
         } catch (error) {
-            alert('Failed to schedule')
+            console.error('Network Error:', error);
+            alert('Failed to schedule: Network or server error');
         } finally {
             setIsSubmitting(false)
         }
@@ -115,13 +115,15 @@ export default function EarlyWarning() {
             const res = await fetch(`${API_BASE}/api/schedule/action`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body: JSON.stringify({ schedule_id: id, action })
+                body: JSON.stringify({ schedule_id: id, action: action.toLowerCase() })
             })
             if (res.ok) {
-                alert(`Schedule marked as ${action}`)
+                alert(action.toLowerCase() === 'success' ? 'Counselling session completed and moved to history!' : `Schedule marked as ${action} successfully!`)
                 fetchSchedules()
             }
-        } catch (e) { alert("Action failed") }
+        } catch (e) {
+            alert("Action failed")
+        }
     }
 
     const handleLogComplaint = async (e: React.FormEvent) => {
@@ -157,7 +159,8 @@ export default function EarlyWarning() {
             .then((data: any[]) => {
                 setAtRisk(data.map(s => ({
                     name: s.name,
-                    roll: s.id,
+                    roll: s.roll || s.id,
+                    id: s.id,
                     risk: `${Math.round((s.risk_probability || 0.8) * 100)}%`,
                     reason: s.reason,
                     trend: 'stable' as const,
@@ -188,17 +191,15 @@ export default function EarlyWarning() {
                     <h1 className="text-4xl font-black text-[#001b5e]">At-Risk Students Panel</h1>
                 </div>
                 <div className="flex gap-4">
+                    <button onClick={() => setShowHistory(!showHistory)} className={`px-6 py-3 rounded-2xl font-bold transition-all ${showHistory ? 'bg-slate-100 text-slate-600' : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'}`}>
+                        {showHistory ? 'View Active' : 'View History Report'}
+                    </button>
                     {role !== 'student' && (
-                        <>
-                            <button onClick={() => setShowComplaintModal(true)} className="bg-rose-600 text-white px-6 py-3 rounded-2xl font-black shadow-xl hover:scale-105 transition-all flex items-center gap-2">
-                                <ShieldAlert className="w-4 h-4" /> Log Teacher Complaint
-                            </button>
-                            <button onClick={() => setShowHistory(!showHistory)} className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-600 hover:bg-slate-50 transition-all">
-                                {showHistory ? 'View Active' : 'View History Report'}
-                            </button>
-                        </>
+                        <button onClick={() => setShowComplaintModal(true)} className="bg-rose-600 text-white px-6 py-3 rounded-2xl font-black shadow-xl hover:scale-105 transition-all flex items-center gap-2">
+                            <ShieldAlert className="w-4 h-4" /> Log Teacher Complaint
+                        </button>
                     )}
-                    <button onClick={fetchAlerts} disabled={loading} className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-all disabled:opacity-50">
+                    <button onClick={fetchSchedules} disabled={loading} className="bg-white border border-slate-200 px-6 py-3 rounded-2xl font-bold text-slate-600 flex items-center gap-2 hover:bg-slate-50 transition-all disabled:opacity-50">
                         <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
                         Refresh
                     </button>
@@ -271,7 +272,7 @@ export default function EarlyWarning() {
                                                             )}
                                                         </div>
                                                         <button
-                                                            onClick={() => setSelectedStudent({ name: student.name, roll: student.roll })}
+                                                            onClick={() => setSelectedStudent({ name: student.name, roll: student.roll, id: student.id })}
                                                             className="bg-white border border-slate-200 p-2 rounded-xl hover:bg-[#001b5e] hover:text-white transition-all shadow-sm flex items-center gap-2 text-xs font-bold"
                                                         >
                                                             <UserPlus className="w-4 h-4" />
@@ -300,12 +301,16 @@ export default function EarlyWarning() {
                                     activeSchedules.map((s, i) => (
                                         <div key={i} className="p-8 hover:bg-slate-50 transition-all flex flex-col md:flex-row items-center justify-between group gap-4">
                                             <div className="flex items-center gap-6">
-                                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#001b5e]">
-                                                    <CalendarDays className="w-6 h-6" />
+                                                <div className="w-14 h-14 bg-blue-50 rounded-2xl flex flex-col items-center justify-center text-[#001b5e] border border-blue-100">
+                                                    <History className="w-6 h-6 opacity-40" />
                                                 </div>
                                                 <div>
-                                                    <h4 className="font-bold text-[#001b5e]">{s.student_name}</h4>
-                                                    <p className="text-xs font-bold text-slate-400">Counselor: {s.staff_name}</p>
+                                                    <h4 className="font-black text-[#001b5e] text-lg flex items-center gap-2">
+                                                        {s.student_name}
+                                                    </h4>
+                                                    <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-widest">
+                                                        ID: {s.student_id ? (s.student_id.slice(0, 8) + '...') : 'N/A'} • Counselor: {s.staff_name}
+                                                    </p>
                                                 </div>
                                             </div>
                                             <div className="text-center">
@@ -371,7 +376,10 @@ export default function EarlyWarning() {
                                 <h3 className="text-xl font-black mb-4">Request Counseling</h3>
                                 <p className="text-sm text-blue-200 mb-8 leading-relaxed">Need help with your academic plan? Schedule a session with a counselor.</p>
                                 <button
-                                    onClick={() => setSelectedStudent({ name: username, roll: 'Me' })}
+                                    onClick={() => {
+                                        const userId = localStorage.getItem('userId');
+                                        setSelectedStudent({ name: username, roll: 'Me', id: userId });
+                                    }}
                                     className="w-full bg-white text-[#001b5e] py-4 rounded-2xl font-black shadow-xl hover:scale-[1.02] transition-all"
                                 >
                                     Start Schedule Request

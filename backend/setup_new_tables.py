@@ -41,7 +41,8 @@ def setup_database():
                 category text DEFAULT 'General',
                 created_at timestamp with time zone DEFAULT now()
             );
-            """
+            """,
+            "ALTER TABLE public.exams ADD COLUMN IF NOT EXISTS year_of_study INTEGER DEFAULT 1;"
         ]
         
         for cmd in commands:

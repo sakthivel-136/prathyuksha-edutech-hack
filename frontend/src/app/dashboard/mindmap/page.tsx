@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useRef } from 'react'
-import { API_BASE } from '@/lib/api'
+import { useState, useRef, useEffect } from 'react'
+import { API_BASE, getAuthHeaders } from '@/lib/api'
 import {
     FileText,
     Upload,
@@ -50,7 +50,19 @@ export default function MindMapNLP() {
     const [complete, setComplete] = useState(false)
     const [file, setFile] = useState<File | null>(null)
     const [results, setResults] = useState<any>(null)
+    const [role, setRole] = useState('')
     const fileInputRef = useRef<HTMLInputElement>(null)
+
+    useEffect(() => {
+        setRole(localStorage.getItem('userRole') || 'student')
+    }, [])
+
+    if (role && role !== 'student') {
+        return <div className="p-16 text-center text-slate-500 font-black uppercase tracking-widest bg-slate-50 rounded-3xl border-2 border-dashed border-slate-200 max-w-2xl mx-auto my-20">
+            <Brain className="w-16 h-16 mx-auto mb-6 text-slate-200" />
+            This feature is restricted to Student profiles.
+        </div>
+    }
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
@@ -68,12 +80,9 @@ export default function MindMapNLP() {
         formData.append('file', file);
 
         try {
-            const token = localStorage.getItem('accessToken');
             const res = await fetch(`${API_BASE}/api/mindmap/upload`, {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                },
+                headers: getAuthHeaders(),
                 body: formData
             });
 
@@ -84,8 +93,6 @@ export default function MindMapNLP() {
             }
             const data = await res.json();
 
-
-            // To provide visual effect of NLP taking some time to cluster
             setTimeout(() => {
                 setResults(data)
                 setProcessing(false)
@@ -188,81 +195,85 @@ export default function MindMapNLP() {
                 </div>
 
                 <div className="lg:col-span-3 space-y-8">
-                    <div className="vantage-card p-8 min-h-[600px] flex flex-col relative overflow-hidden bg-slate-50 overflow-x-auto">
-                        <div className="flex items-center justify-between mb-8 relative z-10 sticky left-0 top-0">
-                            <div className="flex items-center gap-4">
-                                <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-slate-200 shadow-sm">
-                                    <FileText className="w-6 h-6 text-blue-600" />
+                    <div className="vantage-card p-8 min-h-[600px] flex flex-col relative overflow-hidden bg-slate-50">
+                        <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
+                            <div className="flex items-center justify-between mb-8 relative z-10 sticky left-0 top-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center border border-slate-200 shadow-sm">
+                                        <FileText className="w-6 h-6 text-blue-600" />
+                                    </div>
+                                    <div>
+                                        <h3 className="font-black text-[#001b5e] uppercase">{(results && results.filename) ? results.filename : (file ? file.name : "VANTAGE Knowledge Graph")}</h3>
+                                        <p className="text-xs font-bold text-slate-400">Semantic Node Trees</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="font-black text-[#001b5e] uppercase">{(results && results.filename) ? results.filename : (file ? file.name : "VANTAGE Knowledge Graph")}</h3>
-                                    <p className="text-xs font-bold text-slate-400">Semantic Node Trees</p>
-                                </div>
-                            </div>
-                            <div className="flex gap-2">
-                                <button className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"><ZoomIn className="w-5 h-5" /></button>
-                                <button className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"><Share2 className="w-5 h-5" /></button>
-                                <button
-                                    onClick={() => {
-                                        if (complete && results) {
-                                            const element = document.getElementById('mindmap-export-container');
-                                            if (element) {
-                                                import('html2pdf.js').then((html2pdfModule) => {
-                                                    const html2pdf = html2pdfModule.default;
-                                                    const opt = {
-                                                        margin: 10,
-                                                        filename: ((results && results.filename) ? results.filename.replace('.pdf', '') : 'Syllabus') + '_MindMap.pdf',
-                                                        image: { type: 'jpeg' as const, quality: 0.98 },
-                                                        html2canvas: { scale: 2, useCORS: true },
-                                                        jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'landscape' as const }
-                                                    };
-                                                    html2pdf().set(opt).from(element).save();
-                                                });
+                                <div className="flex gap-2">
+                                    <button className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"><ZoomIn className="w-5 h-5" /></button>
+                                    <button className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 transition-all shadow-sm"><Share2 className="w-5 h-5" /></button>
+                                    <button
+                                        onClick={() => {
+                                            if (complete && results) {
+                                                const element = document.getElementById('mindmap-export-container');
+                                                if (element) {
+                                                    import('html2pdf.js').then((html2pdfModule) => {
+                                                        const html2pdf = html2pdfModule.default;
+                                                        const opt = {
+                                                            margin: 10,
+                                                            filename: ((results && results.filename) ? results.filename.replace('.pdf', '') : 'Syllabus') + '_MindMap.pdf',
+                                                            image: { type: 'jpeg' as const, quality: 0.98 },
+                                                            html2canvas: { scale: 2, useCORS: true },
+                                                            jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'landscape' as const }
+                                                        };
+                                                        html2pdf().set(opt).from(element).save();
+                                                    });
+                                                }
                                             }
-                                        }
-                                    }}
-                                    className={`p-2.5 rounded-xl border transition-all shadow-sm ${complete && results ? 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100' : 'bg-white border-slate-200 text-slate-400 opacity-50 cursor-not-allowed'}`}
-                                >
-                                    <Download className="w-5 h-5" />
-                                </button>
+                                        }}
+                                        className={`p-2.5 rounded-xl border transition-all shadow-sm ${complete && results ? 'bg-blue-50 border-blue-200 text-blue-600 hover:bg-blue-100' : 'bg-white border-slate-200 text-slate-400 opacity-50 cursor-not-allowed'}`}
+                                    >
+                                        <Download className="w-5 h-5" />
+                                    </button>
+                                </div>
                             </div>
-                        </div>
 
-                        {processing ? (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
-                                <div className="relative">
-                                    <div className="w-24 h-24 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
-                                    <Cpu className="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                            {processing ? (
+                                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-6">
+                                    <div className="relative">
+                                        <div className="w-24 h-24 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin"></div>
+                                        <Cpu className="w-8 h-8 text-blue-600 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h4 className="text-xl font-black text-[#001b5e]">Evaluating Neural Semantics...</h4>
+                                        <p className="max-w-xs text-slate-400 text-sm font-medium">Running OCR to extract text from PDF and using NLP to cluster topics into a mapped hierarchy.</p>
+                                    </div>
                                 </div>
-                                <div className="space-y-2">
-                                    <h4 className="text-xl font-black text-[#001b5e]">Evaluating Neural Semantics...</h4>
-                                    <p className="max-w-xs text-slate-400 text-sm font-medium">Running OCR to extract text from PDF and using NLP to cluster topics into a mapped hierarchy.</p>
+                            ) : (complete && results) ? (
+                                <div id="mindmap-export-container" className="flex-1 flex flex-col min-w-max p-10 pt-4 relative group bg-slate-50 items-start">
+                                    <div className="absolute top-0 bottom-0 left-0 w-full bg-[radial-gradient(circle_at_50%_0%,#3b82f605,transparent)]"></div>
+                                    <div className="mx-auto">
+                                        <MindMapNode node={results.graph} />
+                                    </div>
+                                    <div className="absolute bottom-4 left-4 right-4 flex justify-between">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white/80 px-4 py-2 rounded-full border border-slate-200 shadow-sm">
+                                            Rendered visually via layout engine
+                                        </p>
+                                        <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50/80 px-4 py-2 rounded-full border border-blue-100 shadow-sm">
+                                            Data Extracted via Optical Character Recognition
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : complete && results ? (
-                            <div id="mindmap-export-container" className="flex-1 flex flex-col min-w-[700px] p-10 pt-4 relative group bg-slate-50">
-                                <div className="absolute top-0 bottom-0 left-1/2 w-full bg-[radial-gradient(circle_at_50%_50%,#3b82f605,transparent)] -translate-x-1/2"></div>
-                                <MindMapNode node={results.graph} />
-                                <div className="absolute bottom-4 left-4 right-4 flex justify-between">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest bg-white/80 px-4 py-2 rounded-full border border-slate-200 shadow-sm">
-                                        Rendered visually via layout engine
-                                    </p>
-                                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-widest bg-blue-50/80 px-4 py-2 rounded-full border border-blue-100 shadow-sm">
-                                        Data Extracted via Optical Character Recognition
-                                    </p>
+                            ) : (
+                                <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8">
+                                    <div className="w-20 h-20 bg-white shadow-sm border border-slate-100 rounded-[2rem] flex items-center justify-center">
+                                        <Brain className="w-10 h-10 text-slate-300" />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h4 className="text-xl font-black text-slate-600">No Document Uploaded</h4>
+                                        <p className="text-slate-400 text-sm max-w-xs mx-auto">Upload a PDF Syllabus document. VANTAGE will scan it using AI OCR and map the most critical concepts into a structure.</p>
+                                    </div>
                                 </div>
-                            </div>
-                        ) : (
-                            <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8">
-                                <div className="w-20 h-20 bg-white shadow-sm border border-slate-100 rounded-[2rem] flex items-center justify-center">
-                                    <Brain className="w-10 h-10 text-slate-300" />
-                                </div>
-                                <div className="space-y-2">
-                                    <h4 className="text-xl font-black text-slate-600">No Document Uploaded</h4>
-                                    <p className="text-slate-400 text-sm max-w-xs mx-auto">Upload a PDF Syllabus document. VANTAGE will scan it using AI OCR and map the most critical concepts into a structure.</p>
-                                </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

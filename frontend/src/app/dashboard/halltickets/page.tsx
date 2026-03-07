@@ -23,6 +23,8 @@ export default function HallTickets() {
     const [role, setRole] = useState('student')
     const [viewAll, setViewAll] = useState(false)
     const [allStudents, setAllStudents] = useState<any[]>([])
+    const [publications, setPublications] = useState<any[]>([])
+    const [publishScope, setPublishScope] = useState({ department: 'CSE', year_of_study: 1, semester: 1 })
 
     useEffect(() => {
         const headers = getAuthHeaders()
@@ -36,29 +38,53 @@ export default function HallTickets() {
             setExams(Array.isArray(ex) ? ex : [])
             setPublished(status?.published ?? false)
             setCoeApproved(status?.coe_approved ?? false)
+            setPublications(status?.publications || [])
             setLoading(false)
         }).catch(() => setLoading(false))
     }, [])
-
-    const rollNumber = profile?.roll_number || ''
-    const qrData = `ROLL:${rollNumber}|${profile?.full_name || ''}|${profile?.department || ''}|${profile?.year_of_study || ''}`
-    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`
 
     const handlePublish = async () => {
         setPublishing(true)
         try {
             const res = await fetch(`${API_BASE}/api/hall_tickets/publish`, {
                 method: 'POST',
-                headers: getAuthHeaders()
+                headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+                body: JSON.stringify(publishScope)
             })
             if (res.ok) {
-                setPublished(true)
-                if (role === 'coe') {
-                    setCoeApproved(true)
-                }
+                // Refresh status
+                const statusRes = await fetch(`${API_BASE}/api/hall_tickets/status`, { headers: getAuthHeaders() })
+                const status = await statusRes.json()
+                setPublished(status?.published ?? false)
+                setCoeApproved(status?.coe_approved ?? false)
+                setPublications(status?.publications || [])
             }
         } catch (e) {
             console.error(e)
+        } finally {
+            setPublishing(false)
+        }
+    }
+
+    const handleUnpublish = async () => {
+        if (!confirm('Are you sure you want to unpublish/reset all hall tickets? This will also clear seating results.')) return
+        setPublishing(true)
+        try {
+            const res = await fetch(`${API_BASE}/api/hall_tickets/unpublish`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            })
+            if (res.ok) {
+                alert("Hall tickets unpublished and reset successfully.")
+                setPublished(false)
+                setCoeApproved(false)
+                setPublications([])
+            } else {
+                const data = await res.json()
+                alert(`Error: ${data.detail || 'Failed to unpublish'}`)
+            }
+        } catch (e) {
+            alert("Connection error. Please try again.")
         } finally {
             setPublishing(false)
         }
@@ -85,6 +111,10 @@ export default function HallTickets() {
             `<tr><td>${e.course_code}</td><td>${e.course_name}</td><td>${e.exam_date}</td><td>${e.exam_time}</td><td>${e.room}</td></tr>`
         ).join('')
 
+        const rollNumber = profile?.roll_number || ''
+        const qrData = `ROLL:${rollNumber}|${profile?.full_name || ''}|${profile?.department || ''}`
+        const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(qrData)}`
+
         const htmlContent = `
       <html>
       <head><title>Hall Ticket - ${profile.full_name}</title>
@@ -100,7 +130,6 @@ export default function HallTickets() {
         th{background:#001b5e;color:white;padding:12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:1px}
         td{padding:12px;border-bottom:1px solid #e2e8f0;font-size:14px;font-weight:500}
         .qr-section{text-align:center;margin-top:30px;padding:20px;border:2px dashed #cbd5e1;border-radius:12px;}
-        .qr-label{font-size:12px;font-weight:700;color:#001b5e;margin-top:8px}
         .seal{display:flex;justify-content:space-between;margin-top:60px}
         .seal-item{text-align:center;width:200px}
         .seal-line{border-top:1px solid #94a3b8;margin-bottom:8px}
@@ -111,25 +140,23 @@ export default function HallTickets() {
       <body>
         <div class="header">
           <div><div class="logo">VANTAGE</div><div class="subtitle">Academic & Examination Management</div></div>
-          <div style="text-align:right"><div style="font-size:20px;font-weight:900;color:#001b5e">HALL TICKET</div><div class="subtitle">2025-26 Academic Year</div></div>
         </div>
         <div class="info-grid">
           <div class="info-item"><label>Student Name</label><p>${profile.full_name}</p></div>
           <div class="info-item"><label>Roll Number</label><p>${profile.roll_number}</p></div>
           <div class="info-item"><label>Department</label><p>${profile.department}</p></div>
-          <div class="info-item"><label>Year / Section</label><p>Year ${profile.year_of_study} / ${profile.section}</p></div>
         </div>
         <table><thead><tr><th>Code</th><th>Subject</th><th>Date</th><th>Time</th><th>Room</th></tr></thead><tbody>${examRows}</tbody></table>
         <div class="qr-section">
           <img src="${qrUrl}" width="120" height="120" crossorigin="anonymous" />
-          <div class="qr-label">Digital Verification QR Code</div>
+          <div style="font-size:12px;font-weight:700;margin-top:10px">VANTAGE Digital Identity Verification</div>
         </div>
         <div class="seal">
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Student Signature</div></div>
-          ${(coeApproved && role === 'student') ? '<div class="seal-item" style="color:#10b981;font-weight:900;text-transform:uppercase;font-size:14px;">✅ APPROVED BY COE</div>' : ''}
+          ${coeApproved ? '<div class="seal-item" style="color:#10b981;font-weight:900;">✅ APPROVED BY COE</div>' : ''}
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Controller of Examinations</div></div>
         </div>
-        <div class="footer">Computer-generated document verified by HMAC-SHA256 | Generated: ${new Date().toLocaleString()} | Vantage v1.0</div>
+        <div class="footer">Generated: ${new Date().toLocaleString()} | Vantage v1.0</div>
       </body></html>
     `;
 
@@ -137,7 +164,6 @@ export default function HallTickets() {
             const html2pdf = html2pdfModule.default;
             const element = document.createElement('div');
             element.innerHTML = htmlContent;
-
             const opt = {
                 margin: 10,
                 filename: 'HallTicket_' + profile.roll_number + '.pdf',
@@ -145,7 +171,6 @@ export default function HallTickets() {
                 html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm' as const, format: 'a4' as const, orientation: 'portrait' as const }
             };
-
             html2pdf().set(opt).from(element).save();
         });
     }
@@ -161,289 +186,217 @@ export default function HallTickets() {
     const isAdmin = role === 'admin'
     const isCoe = role === 'coe'
     const isStudent = !isAdmin && !isCoe
-    const canDownload = published && coeApproved && exams.length > 0 && profile?.roll_number
+
+    // Check if student's specific scope is published
+    const isStudentScopePublished = publications.some(p => {
+        return (!p.department || p.department === profile?.department) &&
+            (!p.year_of_study || p.year_of_study === profile?.year_of_study)
+    })
+
+    const canDownload = (isStudentScopePublished || !isStudent) && published && coeApproved && exams.length > 0 && profile?.roll_number
+    const rollNumber = profile?.roll_number || ''
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent('ROLL:' + rollNumber)}`
 
     return (
-        <div className="space-y-8 fade-in">
+        <div className="space-y-8 fade-in pb-20">
             <div className="flex justify-between items-end">
                 <div className="space-y-1">
                     <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Exams Portal</p>
                     <h1 className="text-4xl font-black text-[#001b5e]">Hall Tickets</h1>
                 </div>
                 {canDownload && (
-                    <div className="flex gap-4">
-                        <button onClick={handleDownload} className="bg-[#001b5e] text-white px-8 py-3 rounded-2xl font-black shadow-xl shadow-blue-900/20 flex items-center gap-2">
-                            <Download className="w-4 h-4" /> Download / Print
-                        </button>
-                    </div>
+                    <button onClick={handleDownload} className="bg-[#001b5e] text-white px-8 py-3 rounded-2xl font-black shadow-xl flex items-center gap-2">
+                        <Download className="w-4 h-4" /> Download / Print
+                    </button>
                 )}
             </div>
 
             {isAdmin && (
                 <div className="vantage-card p-6 border-blue-100 bg-blue-50/30">
                     <h3 className="font-black text-[#001b5e] mb-2 flex items-center gap-2">
-                        <Send className="w-5 h-5" /> Admin: Generate Hall Tickets
+                        <Send className="w-5 h-5" /> Admin: Publish Hall Tickets by Scope
                     </h3>
-                    <p className="text-sm text-slate-600 mb-4">
-                        Generate hall tickets and send them to the COE (Controller of Examinations) for final approval.
-                    </p>
-                    {coeApproved ? (
-                        <div className="flex items-center gap-2 text-emerald-600 font-bold">
-                            <CheckCircle2 className="w-5 h-5" />
-                            Hall tickets are live and approved by COE.
-                        </div>
-                    ) : published ? (
-                        <div className="flex items-center gap-2 text-amber-600 font-bold">
-                            <CheckCircle2 className="w-5 h-5" />
-                            Sent to COE. Awaiting final approval.
-                        </div>
-                    ) : (
-                        <button
-                            onClick={handlePublish}
-                            disabled={publishing || exams.length === 0}
-                            className="bg-[#001b5e] text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-700 disabled:opacity-50"
-                        >
-                            {publishing ? 'Sending...' : 'Send to COE for Approval'}
+
+                    <div className="flex items-center gap-4 mb-4 bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
+                        <select value={publishScope.department} onChange={e => setPublishScope({ ...publishScope, department: e.target.value })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
+                            <option value="CSE">CSE</option>
+                            <option value="ECE">ECE</option>
+                            <option value="MECH">MECH</option>
+                            <option value="IT">IT</option>
+                        </select>
+                        <select value={publishScope.year_of_study} onChange={e => setPublishScope({ ...publishScope, year_of_study: parseInt(e.target.value) })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
+                            <option value={1}>1st Year</option>
+                            <option value={2}>2nd Year</option>
+                            <option value={3}>3rd Year</option>
+                            <option value={4}>4th Year</option>
+                        </select>
+                        <select value={publishScope.semester} onChange={e => setPublishScope({ ...publishScope, semester: parseInt(e.target.value) })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Sem {s}</option>)}
+                        </select>
+                        <button onClick={handlePublish} disabled={publishing} className="bg-[#001b5e] text-white px-6 py-2 rounded-lg font-bold text-sm ml-auto">
+                            {publishing ? 'Publishing...' : 'Publish Selected Scope'}
                         </button>
-                    )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-6">
+                        <div className="space-y-2">
+                            <h4 className="text-xs font-black text-slate-500 uppercase">Currently Published Scopes:</h4>
+                            {publications.length === 0 ? (
+                                <p className="text-sm font-bold text-slate-400">None</p>
+                            ) : (
+                                <ul className="flex flex-wrap gap-2">
+                                    {publications.map((p, i) => (
+                                        <li key={i} className="bg-blue-100 text-blue-800 text-xs font-black px-3 py-1 rounded-full flex items-center gap-1">
+                                            {p.department || 'ALL'}, Yr {p.year_of_study || 'ALL'}, Sem {p.semester || 'ALL'}
+                                            {p.published_by === 'coe@vantage.edu' ? ' ✅ (COE)' : ' ⏳ (Pending)'}
+                                        </li>
+                                    ))}
+                                </ul>
+                            )}
+                        </div>
+                        {published && (
+                            <button onClick={handleUnpublish} disabled={publishing} className="text-rose-600 font-bold text-xs hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-rose-100 disabled:opacity-50">
+                                <Lock className="w-3 h-3" /> {publishing ? 'Processing...' : 'Unpublish/Reset All'}
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
 
             {isCoe && (
                 <div className="vantage-card p-6 border-emerald-100 bg-emerald-50/30">
                     <h3 className="font-black text-emerald-900 mb-2 flex items-center gap-2">
-                        <Shield className="w-5 h-5" /> COE: Approve Hall Tickets
+                        <Shield className="w-5 h-5" /> COE approval & Publishing
                     </h3>
-                    <p className="text-sm text-emerald-700 mb-4">
-                        Review and approve the generated hall tickets for final publication to students.
-                    </p>
-                    {coeApproved ? (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 text-emerald-600 font-bold">
-                                <CheckCircle2 className="w-5 h-5" />
-                                You have approved and published the hall tickets.
-                            </div>
-                            <button
-                                onClick={handleViewAll}
-                                className="bg-white text-emerald-700 border border-emerald-200 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-emerald-50 transition-all"
-                            >
-                                {viewAll ? 'Back to Dashboard' : 'View All Student Hall Tickets'}
-                            </button>
-                        </div>
-                    ) : published ? (
-                        <div className="flex gap-4">
-                            <button
-                                onClick={handlePublish}
-                                disabled={publishing}
-                                className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-emerald-700 disabled:opacity-50"
-                            >
-                                {publishing ? 'Approving...' : 'Approve & Publish Hall Tickets'}
-                            </button>
-                            <button
-                                onClick={handleViewAll}
-                                className="bg-white text-emerald-700 border border-emerald-200 px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-emerald-50 transition-all"
-                            >
-                                {viewAll ? 'Back' : 'Preview Student Hall Tickets'}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="text-sm font-bold text-slate-500">
-                            Admin has not yet generated hall tickets for approval.
-                        </div>
-                    )}
-                </div>
-            )}
 
-            {isStudent && (!published || !coeApproved) && (
-                <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
-                    <Lock className="w-16 h-16 text-slate-300" />
-                    <h3 className="text-xl font-black text-[#001b5e]">Hall Tickets Not Available</h3>
-                    <p className="text-slate-400 max-w-sm">Hall tickets are currently pending generation by Admin or awaiting final approval from the COE.</p>
-                </div>
-            )}
+                    <div className="flex items-center gap-4 mb-4 bg-white p-4 rounded-xl border border-emerald-100 shadow-sm">
+                        <select value={publishScope.department} onChange={e => setPublishScope({ ...publishScope, department: e.target.value })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
+                            <option value="CSE">CSE</option>
+                            <option value="ECE">ECE</option>
+                            <option value="MECH">MECH</option>
+                            <option value="IT">IT</option>
+                        </select>
+                        <select value={publishScope.year_of_study} onChange={e => setPublishScope({ ...publishScope, year_of_study: parseInt(e.target.value) })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
+                            <option value={1}>1st Year</option>
+                            <option value={2}>2nd Year</option>
+                            <option value={3}>3rd Year</option>
+                            <option value={4}>4th Year</option>
+                        </select>
+                        <select value={publishScope.semester} onChange={e => setPublishScope({ ...publishScope, semester: parseInt(e.target.value) })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Sem {s}</option>)}
+                        </select>
+                        <button onClick={handlePublish} disabled={publishing} className="bg-emerald-600 shadow-lg shadow-emerald-200 text-white px-6 py-2 rounded-lg font-bold text-sm ml-auto">
+                            {publishing ? 'Publishing...' : 'Approve & Publish Scope'}
+                        </button>
+                    </div>
 
-            {exams.length === 0 && (
-                <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
-                    <Inbox className="w-16 h-16 text-slate-200" />
-                    <h3 className="text-xl font-black text-[#001b5e]">No Exam Schedule Available</h3>
-                    <p className="text-slate-400 max-w-sm">Hall tickets require an exam schedule. Admin will add exams and publish tickets.</p>
-                </div>
-            )}
-
-            {canDownload && !viewAll && (
-                <div className="space-y-8">
-                    <div className="vantage-card overflow-hidden">
-                        <div className="bg-[#001b5e] p-8 text-white flex justify-between items-center">
-                            <div>
-                                <h2 className="text-2xl font-black tracking-wider">VANTAGE</h2>
-                                <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mt-1">Integrated Academic & Examination Management</p>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-xl font-black">HALL TICKET</p>
-                                <p className="text-blue-300 text-xs font-bold">Academic Year 2025-26</p>
-                            </div>
-                        </div>
-
-                        <div className="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 border-b border-slate-100">
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Name</p>
-                                <p className="text-lg font-black text-[#001b5e] mt-1">{profile?.full_name}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Roll Number</p>
-                                <p className="text-lg font-black text-[#001b5e] mt-1">{profile?.roll_number}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</p>
-                                <p className="text-lg font-black text-[#001b5e] mt-1">{profile?.department}</p>
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Year / Section</p>
-                                <p className="text-lg font-black text-[#001b5e] mt-1">Year {profile?.year_of_study} / {profile?.section}</p>
-                            </div>
-                        </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full">
-                                <thead>
-                                    <tr className="bg-[#001b5e] text-white">
-                                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Code</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Subject</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Date</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Time</th>
-                                        <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Room</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {exams.map((exam: any, i: number) => (
-                                        <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-all">
-                                            <td className="px-6 py-4 font-black text-[#001b5e]">{exam.course_code}</td>
-                                            <td className="px-6 py-4 font-medium text-slate-700">{exam.course_name}</td>
-                                            <td className="px-6 py-4 font-bold text-slate-600 flex items-center gap-2"><Calendar className="w-3 h-3" />{exam.exam_date}</td>
-                                            <td className="px-6 py-4 font-bold text-slate-600">{exam.exam_time}</td>
-                                            <td className="px-6 py-4"><span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-sm font-black">{exam.room}</span></td>
-                                        </tr>
+                    <div className="flex items-center justify-between mt-6">
+                        <div className="space-y-2">
+                            <h4 className="text-xs font-black text-slate-500 uppercase">Currently Published Scopes:</h4>
+                            {publications.length === 0 ? (
+                                <p className="text-sm font-bold text-slate-400">None</p>
+                            ) : (
+                                <ul className="flex flex-col gap-2">
+                                    {publications.map((p, i) => (
+                                        <li key={i} className="bg-white border rounded-lg p-3 flex items-center justify-between group">
+                                            <div>
+                                                <p className="font-black text-[#001b5e] text-xs uppercase">
+                                                    {p.department || 'ALL'}, Yr {p.year_of_study || 'ALL'}, Sem {p.semester || 'ALL'}
+                                                </p>
+                                                <p className="text-[10px] text-slate-400 font-bold">BY: {p.published_by}</p>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                                {p.is_coe_approved ? (
+                                                    <span className="bg-emerald-100 text-emerald-800 text-[10px] font-black px-2 py-1 rounded-full flex items-center gap-1">
+                                                        <CheckCircle2 className="w-3 h-3" /> COE APPROVED
+                                                    </span>
+                                                ) : (
+                                                    <button
+                                                        onClick={async () => {
+                                                            const res = await fetch(`${API_BASE}/api/hall_tickets/approve/${p.id}`, {
+                                                                method: 'POST',
+                                                                headers: getAuthHeaders()
+                                                            })
+                                                            if (res.ok) {
+                                                                alert("Published Successfully!");
+                                                                window.location.reload();
+                                                            }
+                                                        }}
+                                                        className="bg-emerald-600 text-white text-[10px] font-black px-3 py-1.5 rounded-lg hover:bg-emerald-700 transition-colors shadow-lg shadow-emerald-100"
+                                                    >
+                                                        Approve & Publish
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </li>
                                     ))}
-                                </tbody>
-                            </table>
+                                </ul>
+                            )}
                         </div>
-
-                        <div className="p-8 flex items-center justify-between bg-slate-50">
-                            <div className="flex items-center gap-6">
-                                <div className="w-32 h-32 bg-white border-2 border-slate-200 rounded-xl flex items-center justify-center overflow-hidden">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={qrUrl} alt="QR Code" width={120} height={120} />
-                                </div>
-                                <div className="space-y-2">
-                                    <p className="text-sm font-black text-[#001b5e]">QR Code – Scan to verify Roll Number</p>
-                                    <p className="text-[10px] text-slate-400 font-medium">Roll Number: <strong className="text-[#001b5e]">{profile?.roll_number}</strong></p>
-                                    <div className="flex items-center gap-1 text-emerald-600">
-                                        <CheckCircle2 className="w-3 h-3" />
-                                        <span className="text-[10px] font-bold">HMAC-SHA256 Signature Valid</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="text-right space-y-1">
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Generated</p>
-                                <p className="text-sm font-black text-[#001b5e]">{new Date().toLocaleDateString()}</p>
-                                <div className="flex items-center gap-1 text-emerald-600 justify-end">
-                                    <Shield className="w-3 h-3" />
-                                    <span className="text-[10px] font-bold">Fraud Detection: Clear</span>
-                                </div>
-                            </div>
-                        </div>
+                        {published && (
+                            <button onClick={handleUnpublish} disabled={publishing} className="text-rose-600 font-bold text-xs hover:bg-rose-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-rose-100 disabled:opacity-50">
+                                <Lock className="w-3 h-3" /> {publishing ? 'Processing...' : 'Unpublish/Reset All'}
+                            </button>
+                        )}
                     </div>
                 </div>
             )}
 
-            {viewAll && isCoe && allStudents.length > 0 && (
-                <div className="space-y-12 fade-in">
-                    <h2 className="text-2xl font-black text-[#001b5e] border-b pb-4">Preview: All Student Hall Tickets</h2>
-                    <div className="space-y-12">
-                        {allStudents.map((student: any) => {
-                            const studentQrData = `ROLL:${student.roll_number}|${student.full_name}|${student.department}|${student.year_of_study}`
-                            const studentQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(studentQrData)}`
-                            return (
-                                <div key={student.id} className="vantage-card overflow-hidden shadow-lg border-2">
-                                    <div className="bg-[#001b5e] p-8 text-white flex justify-between items-center">
-                                        <div>
-                                            <h2 className="text-2xl font-black tracking-wider">VANTAGE</h2>
-                                            <p className="text-blue-300 text-xs font-bold uppercase tracking-widest mt-1">Integrated Academic & Examination Management</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-xl font-black">HALL TICKET</p>
-                                            <p className="text-blue-300 text-xs font-bold">Academic Year 2025-26</p>
-                                        </div>
-                                    </div>
-                                    <div className="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50 border-b border-slate-100">
-                                        <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Student Name</p>
-                                            <p className="text-lg font-black text-[#001b5e] mt-1">{student.full_name}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Roll Number</p>
-                                            <p className="text-lg font-black text-[#001b5e] mt-1">{student.roll_number}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Department</p>
-                                            <p className="text-lg font-black text-[#001b5e] mt-1">{student.department}</p>
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Year / Section</p>
-                                            <p className="text-lg font-black text-[#001b5e] mt-1">Year {student.year_of_study} / {student.section || 'A'}</p>
-                                        </div>
-                                    </div>
-                                    <div className="overflow-x-auto">
-                                        <table className="w-full">
-                                            <thead>
-                                                <tr className="bg-[#001b5e] text-white">
-                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Code</th>
-                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Subject</th>
-                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Date</th>
-                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Time</th>
-                                                    <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest">Room</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {exams.map((exam: any, i: number) => (
-                                                    <tr key={i} className="border-b border-slate-100 hover:bg-slate-50 transition-all">
-                                                        <td className="px-6 py-4 font-black text-[#001b5e]">{exam.course_code}</td>
-                                                        <td className="px-6 py-4 font-medium text-slate-700">{exam.course_name}</td>
-                                                        <td className="px-6 py-4 font-bold text-slate-600 flex items-center gap-2"><Calendar className="w-3 h-3" />{exam.exam_date}</td>
-                                                        <td className="px-6 py-4 font-bold text-slate-600">{exam.exam_time}</td>
-                                                        <td className="px-6 py-4"><span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg text-sm font-black">{exam.room}</span></td>
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                    <div className="p-8 flex items-center justify-between bg-slate-50 border-b border-t-slate-200">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-32 h-32 bg-white border-2 border-slate-200 rounded-xl flex items-center justify-center overflow-hidden">
-                                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                <img src={studentQrUrl} alt="QR Code" width={120} height={120} />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <p className="text-sm font-black text-[#001b5e]">QR Code – Scan to verify</p>
-                                                <p className="text-[10px] text-slate-400 font-medium">Roll Number: <strong className="text-[#001b5e]">{student.roll_number}</strong></p>
-                                            </div>
-                                        </div>
-                                        <div className="text-center">
-                                            <div className="flex justify-between gap-16 mt-8 w-[400px]">
-                                                <div className="text-center w-full">
-                                                    <div className="border-t border-slate-400 mb-2"></div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Student Signature</p>
-                                                </div>
-                                                <div className="text-center w-full">
-                                                    <div className="border-t border-slate-400 mb-2"></div>
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase">Controller of Examinations</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        })}
+            {(isStudent && (!canDownload)) && (
+                <div className="vantage-card p-16 text-center space-y-4">
+                    <Lock className="w-16 h-16 text-slate-200 mx-auto" />
+                    <h3 className="text-xl font-black text-[#001b5e]">Hall Tickets Not Available</h3>
+                    <p className="text-slate-500 font-bold text-sm">Your department or year has not been published yet.</p>
+                </div>
+            )}
+
+            {canDownload && (
+                <div className="vantage-card overflow-hidden">
+                    <div className="bg-[#001b5e] p-8 text-white">
+                        <h2 className="text-2xl font-black">VANTAGE</h2>
+                        <p className="text-blue-300 text-xs font-bold uppercase tracking-widest">Hall Ticket 2025-26</p>
+                    </div>
+                    <div className="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50">
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase">Student Name</p>
+                            <p className="text-lg font-black text-[#001b5e]">{profile?.full_name}</p>
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-slate-400 uppercase">Roll Number</p>
+                            <p className="text-lg font-black text-[#001b5e]">{profile?.roll_number}</p>
+                        </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="bg-slate-100">
+                                    <th className="px-6 py-4 text-left font-black text-[#001b5e]">Code</th>
+                                    <th className="px-6 py-4 text-left font-black text-[#001b5e]">Subject</th>
+                                    <th className="px-6 py-4 text-left font-black text-[#001b5e]">Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {exams.map((exam: any, i: number) => {
+                                    const isArrear = exam.semester < (profile?.year_of_study * 2 - 1) // Simple heuristic
+                                    return (
+                                        <tr key={i} className="border-b">
+                                            <td className="px-6 py-4 font-black">
+                                                {exam.course_code}
+                                                {isArrear && <span className="ml-2 bg-amber-100 text-amber-700 text-[8px] px-1.5 py-0.5 rounded uppercase">Arrear</span>}
+                                            </td>
+                                            <td className="px-6 py-4">{exam.course_name}</td>
+                                            <td className="px-6 py-4 font-bold">{exam.exam_date}</td>
+                                        </tr>
+                                    )
+                                })}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div className="p-8 flex items-center justify-between">
+                        <img src={qrUrl} alt="QR" width={100} height={100} />
+                        <div className="text-right">
+                            {coeApproved && <p className="text-emerald-600 font-black">✅ COE APPROVED</p>}
+                        </div>
                     </div>
                 </div>
             )}

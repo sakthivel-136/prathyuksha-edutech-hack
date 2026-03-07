@@ -1,20 +1,12 @@
-import psycopg2
+import os
+from supabase import create_client
 
-conn = psycopg2.connect("postgresql://postgres:$7VPyJLRc%z#6#?@db.dxnekibukrxopunrtjgk.supabase.co:5432/postgres")
-cur = conn.cursor()
+url = os.environ.get("SUPABASE_URL")
+key = os.environ.get("SUPABASE_SERVICE_KEY")
+supabase = create_client(url, key)
 
-# Get column names for the courses table
-try:
-    cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'courses';")
-    print("COURSES COLUMNS:", [row[0] for row in cur.fetchall()])
-except Exception as e:
-    print("Error querying courses:", e)
-
-# Get column names for the exams table
-try:
-    cur.execute("SELECT column_name FROM information_schema.columns WHERE table_name = 'exams';")
-    print("EXAMS COLUMNS:", [row[0] for row in cur.fetchall()])
-except Exception as e:
-    print("Error querying exams:", e)
-
-conn.close()
+res = supabase.table('seat_allocations').select('*').limit(1).execute()
+if res.data:
+    print("Columns:", res.data[0].keys())
+else:
+    print("No data in seat_allocations")

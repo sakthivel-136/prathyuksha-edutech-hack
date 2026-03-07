@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
     Search,
     Brain,
@@ -17,30 +17,51 @@ export default function PerformancePredictor() {
     const [prediction, setPrediction] = useState<any>(null)
     const [loading, setLoading] = useState(false)
     const [features, setFeatures] = useState({
-        g1: '15.0',
-        g2: '16.0',
-        studyTime: '3',
+        g1: '0.0',
+        g2: '0.0',
+        studyTime: '0',
         pastFailures: '0',
-        absences: '2',
+        absences: '0',
         internetAccess: 'Yes'
     })
 
-    const handlePredict = () => {
+    useEffect(() => {
+        const fetchFeatures = async () => {
+            try {
+                const { API_BASE, getAuthHeaders } = await import('@/lib/api')
+                const res = await fetch(`${API_BASE}/api/student/me/features`, { headers: getAuthHeaders() })
+                if (res.ok) {
+                    const data = await res.json()
+                    setFeatures(data)
+                }
+            } catch (e) { console.error(e) }
+        }
+        fetchFeatures()
+    }, [])
+
+    const handlePredict = async () => {
         setLoading(true)
-        // Simulate API call to backend ML service
-        setTimeout(() => {
-            setPrediction({
-                score: 17.4,
-                status: 'High Performance',
-                confidence: 0.94,
-                insights: [
-                    'High study efficiency detected (4.2h/failure)',
-                    'Strong correlation with G1 and G2 scores',
-                    'Low absence impact'
-                ]
+        try {
+            const { API_BASE, getAuthHeaders } = await import('@/lib/api')
+            const res = await fetch(`${API_BASE}/api/predict_performance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ features })
             })
+            if (res.ok) {
+                const data = await res.json()
+                setPrediction({
+                    score: data.predicted_g3,
+                    status: data.predicted_status,
+                    confidence: data.confidence || 0.94,
+                    insights: data.insights || []
+                })
+            }
+        } catch (error) {
+            console.error(error)
+        } finally {
             setLoading(false)
-        }, 500)
+        }
     }
 
     return (

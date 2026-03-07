@@ -20,16 +20,30 @@ export default function Header() {
         setUsername(uName)
         setRole(uRole)
 
-        // Fetch notifications
-        fetch(`${API_BASE}/api/notifications?role=${uRole}&user_id=${encodeURIComponent(uName)}`, {
-            headers: getAuthHeaders()
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (Array.isArray(data)) setNotifications(data)
-            })
-            .catch(console.error)
+        // Fetch notifications using the improved API
+        const fetchNotifications = async () => {
+            try {
+                const res = await fetch(`${API_BASE}/api/notifications`, {
+                    headers: getAuthHeaders()
+                })
+                if (res.ok) {
+                    const data = await res.json()
+                    setNotifications(data)
+                }
+            } catch (e) { console.error(e) }
+        }
+        fetchNotifications()
     }, [])
+
+    const markRead = async (id: string) => {
+        try {
+            await fetch(`${API_BASE}/api/notifications/read/${id}`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            })
+            setNotifications(notifications.map(n => n.id === id ? { ...n, is_read: true } : n))
+        } catch (e) { console.error(e) }
+    }
 
     const navItems = [
         { name: 'Dashboard', path: '/dashboard' },
@@ -45,6 +59,8 @@ export default function Header() {
         document.cookie = "access_token=; path=/; max-age=0"
         window.location.href = "/login"
     }
+
+    const unreadCount = notifications.filter(n => !n.is_read).length
 
     return (
         <header className="h-20 bg-[#001b5e] sticky top-0 z-40 px-8 flex items-center justify-between shadow-lg">
@@ -69,40 +85,45 @@ export default function Header() {
                         onClick={() => setShowNotifications(!showNotifications)}
                         className="relative p-2 text-slate-300 hover:text-white transition-all rounded-full hover:bg-white/10"
                     >
-                        {notifications.length > 0 ? <BellRing className="w-5 h-5 text-white" /> : <Bell className="w-5 h-5" />}
-                        {notifications.length > 0 ? (
+                        {unreadCount > 0 ? <BellRing className="w-5 h-5 text-white" /> : <Bell className="w-5 h-5" />}
+                        {unreadCount > 0 && (
                             <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-[#001b5e] animate-pulse"></div>
-                        ) : hasReadNotifications ? (
-                            <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-[#001b5e]"></div>
-                        ) : null}
+                        )}
                     </button>
 
                     {showNotifications && (
                         <div className="absolute right-0 mt-3 w-80 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden fade-in text-left divide-y divide-slate-50">
                             <div className="p-4 bg-slate-50 border-b border-slate-100 flex justify-between items-center">
                                 <h4 className="font-black text-[#001b5e] text-sm">Notifications</h4>
-                                {notifications.length > 0 && (
-                                    <span className="bg-[#001b5e] text-white text-[10px] font-black px-2 py-0.5 rounded-full">{notifications.length} New</span>
+                                {unreadCount > 0 && (
+                                    <span className="bg-[#001b5e] text-white text-[10px] font-black px-2 py-0.5 rounded-full">{unreadCount} New</span>
                                 )}
                             </div>
 
-                            {notifications.length === 0 ? (
-                                <div className="p-6 text-center text-slate-500 text-xs font-bold">No new notifications</div>
-                            ) : (
-                                notifications.map((notif, idx) => (
-                                    <div key={idx} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer border-l-2 border-transparent hover:border-blue-500">
-                                        <p className="text-xs font-bold text-slate-800 mb-1">{notif.title}</p>
-                                        <p className="text-[10px] text-slate-500 leading-snug">{notif.message}</p>
-                                        <p className="text-[9px] font-bold text-slate-400 mt-2">{notif.time_ago}</p>
-                                    </div>
-                                ))
-                            )}
+                            <div className="max-h-96 overflow-y-auto divide-y divide-slate-50">
+                                {notifications.length === 0 ? (
+                                    <div className="p-6 text-center text-slate-500 text-xs font-bold">No notifications</div>
+                                ) : (
+                                    notifications.map((notif, idx) => (
+                                        <div
+                                            key={idx}
+                                            onClick={() => !notif.is_read && markRead(notif.id)}
+                                            className={`p-4 hover:bg-slate-50 transition-colors cursor-pointer border-l-2 ${notif.is_read ? 'border-transparent' : 'border-blue-500 bg-blue-50/30'}`}
+                                        >
+                                            <p className="text-xs font-bold text-slate-800 mb-1">{notif.title}</p>
+                                            <p className="text-[10px] text-slate-500 leading-snug">{notif.message}</p>
+                                            <p className="text-[9px] font-bold text-slate-400 mt-2">{new Date(notif.created_at).toLocaleDateString()}</p>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
 
-                            {notifications.length > 0 && (
+                            {unreadCount > 0 && (
                                 <button
-                                    onClick={() => {
-                                        setNotifications([])
-                                        setHasReadNotifications(true)
+                                    onClick={async () => {
+                                        for (const n of notifications.filter(notif => !notif.is_read)) {
+                                            await markRead(n.id)
+                                        }
                                         setShowNotifications(false)
                                     }}
                                     className="w-full p-3 text-xs font-bold text-blue-600 hover:text-blue-800 hover:bg-slate-50 transition-all text-center"

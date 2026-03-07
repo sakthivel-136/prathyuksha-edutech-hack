@@ -1,7 +1,21 @@
--- Run this in Supabase SQL Editor if hall_ticket_publish table doesn't exist
--- Admin publishes hall tickets; students download their own only
-CREATE TABLE IF NOT EXISTS public.hall_ticket_publish (
-    id integer PRIMARY KEY DEFAULT 1,
-    published_at timestamp with time zone DEFAULT now(),
-    published_by text
+-- Migration script to support granular hall ticket publishing
+
+-- Drop the old simple table
+DROP TABLE IF EXISTS public.hall_ticket_publish;
+
+-- Recreate it with granular scope columns
+CREATE TABLE public.hall_ticket_publish (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    published_by text NOT NULL,
+    published_at timestamp with time zone NOT NULL,
+    department text,
+    year_of_study integer,
+    semester integer
 );
+
+-- Note: In a production environment, you would want to migrate existing data,
+-- but since hall ticket publishing is a temporary state for a specific exam cycle, 
+-- starting fresh here is acceptable and cleaner.
+
+-- Reload Schema Cache
+NOTIFY pgrst, 'reload schema';

@@ -29,7 +29,7 @@ export default function EarlyWarning() {
     const [loading, setLoading] = useState(true)
     const [selectedStudent, setSelectedStudent] = useState<any>(null)
     const [isSubmitting, setIsSubmitting] = useState(false)
-    const [role, setRole] = useState('')
+    const [role, setRole] = useState<string | null>(null)
     const [username, setUsername] = useState('')
     const [showHistory, setShowHistory] = useState(false)
     const [showComplaintModal, setShowComplaintModal] = useState(false)
@@ -47,12 +47,15 @@ export default function EarlyWarning() {
     const [filteredStudents, setFilteredStudents] = useState<any[]>([])
 
     useEffect(() => {
-        setRole(localStorage.getItem('userRole') || 'student')
+        const storedRole = localStorage.getItem('userRole') || 'student'
+        setRole(storedRole)
         setUsername(localStorage.getItem('username') || 'User')
+
         fetchAlerts()
         fetchSchedules()
         fetchComplaints()
-        if (localStorage.getItem('userRole') !== 'student') {
+
+        if (storedRole !== 'student') {
             fetchAllStudents()
         }
     }, [])
@@ -182,7 +185,7 @@ export default function EarlyWarning() {
             <div className="flex justify-between items-end">
                 <div className="space-y-1">
                     <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Early Warning System</p>
-                    <h1 className="text-4xl font-black text-[#001b5e]">Counseling & Alerts</h1>
+                    <h1 className="text-4xl font-black text-[#001b5e]">At-Risk Students Panel</h1>
                 </div>
                 <div className="flex gap-4">
                     {role !== 'student' && (
@@ -237,7 +240,7 @@ export default function EarlyWarning() {
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div className="lg:col-span-2 space-y-8">
                         {/* At-Risk List (Only shown to Admin/Staff) */}
-                        {role !== 'student' && (
+                        {role && role !== 'student' && (
                             <div className="vantage-card overflow-hidden">
                                 <div className="p-6 border-b bg-slate-50/50">
                                     <h3 className="font-black text-[#001b5e]">Flagged for Intervention</h3>
@@ -258,13 +261,22 @@ export default function EarlyWarning() {
                                                     </div>
                                                 </div>
                                                 <div className="flex items-center gap-6">
-                                                    <div className="text-right">
-                                                        <span className="text-2xl font-black text-rose-600 block">{student.risk}</span>
-                                                        {student.complaint_count > 0 && (
-                                                            <span className="text-[10px] font-black bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                                                                {student.complaint_count} Complaints
-                                                            </span>
-                                                        )}
+                                                    <div className="text-right flex items-center gap-4">
+                                                        <div>
+                                                            <span className="text-2xl font-black text-rose-600 block">{student.risk}</span>
+                                                            {student.complaint_count > 0 && (
+                                                                <span className="text-[10px] font-black bg-rose-50 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                                                                    {student.complaint_count} Complaints
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => setSelectedStudent({ name: student.name, roll: student.roll })}
+                                                            className="bg-white border border-slate-200 p-2 rounded-xl hover:bg-[#001b5e] hover:text-white transition-all shadow-sm flex items-center gap-2 text-xs font-bold"
+                                                        >
+                                                            <UserPlus className="w-4 h-4" />
+                                                            Schedule Counseling
+                                                        </button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -318,37 +330,39 @@ export default function EarlyWarning() {
                             </div>
                         </div>
 
-                        {/* Teacher Complaints Feed (Unique Feature) */}
-                        <div className="vantage-card overflow-hidden">
-                            <div className="p-6 border-b bg-rose-50/30 flex justify-between items-center">
-                                <h3 className="font-black text-rose-900">Recent Teacher Complaints</h3>
-                                <span className="text-[10px] font-black bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-widest">Period Tracking</span>
-                            </div>
-                            <div className="divide-y divide-slate-100">
-                                {complaints.length === 0 ? (
-                                    <div className="p-8 text-center text-slate-500">No complaints reported.</div>
-                                ) : (
-                                    complaints.map((c, i) => (
-                                        <div key={i} className="p-6 hover:bg-slate-50 transition-all">
-                                            <div className="flex justify-between items-start mb-2">
-                                                <div>
-                                                    <h4 className="font-bold text-[#001b5e]">{c.user_profiles?.full_name}</h4>
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase">{c.user_profiles?.roll_number} • Period {c.period}</p>
+                        {/* Teacher Complaints Feed (Only for Staff) */}
+                        {role && role !== 'student' && (
+                            <div className="vantage-card overflow-hidden">
+                                <div className="p-6 border-b bg-rose-50/30 flex justify-between items-center">
+                                    <h3 className="font-black text-rose-900">Recent Teacher Complaints</h3>
+                                    <span className="text-[10px] font-black bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-widest">Period Tracking</span>
+                                </div>
+                                <div className="divide-y divide-slate-100">
+                                    {complaints.length === 0 ? (
+                                        <div className="p-8 text-center text-slate-500">No complaints reported.</div>
+                                    ) : (
+                                        complaints.map((c, i) => (
+                                            <div key={i} className="p-6 hover:bg-slate-50 transition-all">
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <div>
+                                                        <h4 className="font-bold text-[#001b5e]">{c.user_profiles?.full_name}</h4>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase">{c.user_profiles?.roll_number} • Period {c.period}</p>
+                                                    </div>
+                                                    <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${c.urgency === 'High' ? 'bg-rose-100 text-rose-600' :
+                                                        c.urgency === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'
+                                                        }`}>
+                                                        {c.urgency} Urgency
+                                                    </span>
                                                 </div>
-                                                <span className={`text-[9px] font-black px-2 py-0.5 rounded uppercase ${c.urgency === 'High' ? 'bg-rose-100 text-rose-600' :
-                                                    c.urgency === 'Medium' ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-500'
-                                                    }`}>
-                                                    {c.urgency} Urgency
-                                                </span>
+                                                <p className="text-sm font-bold text-slate-700">{c.reason}</p>
+                                                <p className="text-xs text-slate-500 mt-1">{c.explanation}</p>
+                                                <p className="text-[9px] font-bold text-slate-400 mt-3 italic text-right">Reported by {c.teacher_name}</p>
                                             </div>
-                                            <p className="text-sm font-bold text-slate-700">{c.reason}</p>
-                                            <p className="text-xs text-slate-500 mt-1">{c.explanation}</p>
-                                            <p className="text-[9px] font-bold text-slate-400 mt-3 italic text-right">Reported by {c.teacher_name}</p>
-                                        </div>
-                                    ))
-                                )}
+                                        ))
+                                    )}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="space-y-8">
@@ -365,22 +379,24 @@ export default function EarlyWarning() {
                             </div>
                         )}
 
-                        <div className="vantage-card p-8 bg-rose-50 border-rose-100">
-                            <ShieldAlert className="w-10 h-10 text-rose-600 mb-6" />
-                            <h3 className="text-xl font-black text-[#001b5e] mb-2">Automated Early Warning</h3>
-                            <p className="text-sm text-slate-600 leading-relaxed font-medium mb-8">
-                                The Early Warning Engine flags students before major assessments based on interaction logs and benchmarks.
-                            </p>
-                            <div className="p-4 bg-white border border-rose-200 rounded-2xl space-y-4">
-                                <div className="flex justify-between items-center text-xs font-bold">
-                                    <span className="text-slate-500">Prediction Accuracy</span>
-                                    <span className="text-rose-600">95.7% Acc | 0.919 F1</span>
-                                </div>
-                                <div className="h-2 bg-rose-100 rounded-full overflow-hidden">
-                                    <div className="h-full bg-rose-600 w-[95%]" />
+                        {role && role !== 'student' && (
+                            <div className="vantage-card p-8 bg-rose-50 border-rose-100">
+                                <ShieldAlert className="w-10 h-10 text-rose-600 mb-6" />
+                                <h3 className="text-xl font-black text-[#001b5e] mb-2">Automated Early Warning</h3>
+                                <p className="text-sm text-slate-600 leading-relaxed font-medium mb-8">
+                                    The Early Warning Engine flags students before major assessments based on interaction logs and benchmarks.
+                                </p>
+                                <div className="p-4 bg-white border border-rose-200 rounded-2xl space-y-4">
+                                    <div className="flex justify-between items-center text-xs font-bold">
+                                        <span className="text-slate-500">Prediction Accuracy</span>
+                                        <span className="text-rose-600">95.7% Acc | 0.919 F1</span>
+                                    </div>
+                                    <div className="h-2 bg-rose-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-rose-600 w-[95%]" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             )}
@@ -425,7 +441,7 @@ export default function EarlyWarning() {
                 </div>
             )}
 
-            {/* Log Complaint Modal (Unique Feature: Period-wise Tracking) */}
+            {/* Log Complaint Modal */}
             {showComplaintModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm px-4 fade-in">
                     <div className="bg-white p-8 rounded-3xl w-full max-w-xl shadow-2xl relative border border-slate-100 max-h-[90vh] overflow-y-auto">

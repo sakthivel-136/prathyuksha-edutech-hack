@@ -32,7 +32,14 @@ export default function PerformancePredictor() {
                 const res = await fetch(`${API_BASE}/api/student/me/features`, { headers: getAuthHeaders() })
                 if (res.ok) {
                     const data = await res.json()
-                    setFeatures(data)
+                    setFeatures({
+                        g1: String(data.g1 || '0.0'),
+                        g2: String(data.g2 || '0.0'),
+                        studyTime: String(data.studyTime || '0'),
+                        pastFailures: String(data.pastFailures || '0'),
+                        absences: String(data.absences || '0'),
+                        internetAccess: data.internetAccess || 'Yes'
+                    })
                 }
             } catch (e) { console.error(e) }
         }

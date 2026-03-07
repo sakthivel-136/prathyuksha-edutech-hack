@@ -56,10 +56,10 @@ export default function LoginPage() {
             <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
                 <div className="hidden lg:block space-y-8">
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center font-black text-[#001b5e] text-2xl">
-                            V
+                        <div className="w-12 h-12 overflow-hidden rounded-2xl flex items-center justify-center">
+                            <img src="/logo.png" alt="Lumina" className="w-full h-full object-cover border-2 border-white/20 shadow-xl" />
                         </div>
-                        <span className="text-3xl font-black text-white tracking-widest uppercase">Vantage</span>
+                        <span className="text-3xl font-black text-white tracking-widest uppercase">Lumina</span>
                     </div>
 
                     <h1 className="text-6xl font-black text-white leading-tight">
@@ -153,7 +153,7 @@ export default function LoginPage() {
 
                     <div className="pt-4 text-center">
                         <p className="text-slate-400 text-sm">
-                            Protected by <span className="font-bold text-[#001b5e]">Vantage Guard AI</span>
+                            Protected by <span className="font-bold text-[#001b5e]">Lumina Guard AI</span>
                         </p>
                     </div>
                 </div>

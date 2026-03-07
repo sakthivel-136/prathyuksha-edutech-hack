@@ -743,7 +743,6 @@ async def get_schedule_history(current_user: dict = Depends(get_current_admin)):
 
 # --- MANUAL RECOMMENDATIONS ---
 
-class RecommendationCreate(BaseModel):
 class ManualRecommendation(BaseModel):
     title: str
     description: Optional[str] = None

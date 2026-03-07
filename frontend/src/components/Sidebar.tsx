@@ -63,11 +63,11 @@ export default function Sidebar() {
     return (
         <div className="w-64 bg-[#001b5e] text-slate-300 h-screen fixed left-0 top-0 flex flex-col shadow-2xl z-50 overflow-y-auto">
             <div className="p-4 flex-1 flex flex-col">
-                <div className="flex items-center gap-3 px-2 mb-10 pt-4">
-                    <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center font-black text-[#001b5e] text-xl">
-                        V
+                <div className="flex items-center gap-4 mb-8">
+                    <div className="w-12 h-12 overflow-hidden rounded-2xl flex items-center justify-center">
+                        <img src="/logo.png" alt="Lumina" className="w-full h-full object-cover border-2 border-white/20 shadow-xl" />
                     </div>
-                    <span className="text-xl font-black text-white tracking-widest uppercase">Vantage</span>
+                    <span className="text-3xl font-black text-white tracking-widest uppercase">Lumina</span>
                 </div>
 
                 <div className="space-y-1">

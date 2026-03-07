@@ -109,7 +109,7 @@ export default function AcademicCalendar() {
                 </div>
             </div>
 
-            <div className="vantage-card p-6 bg-white overflow-x-auto">
+            <div className="lumina-card p-6 bg-white overflow-x-auto">
                 <div className="min-w-[800px] h-[700px]">
                     <BigCalendar
                         localizer={localizer}

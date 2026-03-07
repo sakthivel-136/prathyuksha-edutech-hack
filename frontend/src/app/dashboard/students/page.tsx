@@ -102,7 +102,7 @@ export default function StudentsPage() {
                     <div className="bg-white p-8 rounded-3xl w-full max-w-lg shadow-2xl relative border border-slate-100">
                         <button onClick={() => setShowAddModal(false)} className="absolute top-6 right-6 text-slate-400 hover:text-slate-600"><X /></button>
                         <h2 className="text-2xl font-black text-[#001b5e] mb-2">Create New User</h2>
-                        <p className="text-sm text-slate-500 mb-6">Add a new student, office staff, or administrator to the VANTAGE system.</p>
+                        <p className="text-sm text-slate-500 mb-6">Add a new student, office staff, or administrator to the LUMINA system.</p>
 
                         <form onSubmit={handleAddUser} className="grid grid-cols-2 gap-4">
                             <div className="col-span-2 space-y-1">

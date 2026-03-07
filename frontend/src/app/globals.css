@@ -14,7 +14,7 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
 }
 
-.vantage-card {
+.lumina-card {
   background: #ffffff;
   border-radius: var(--card-radius);
   border: 1px solid #f1f5f9;
@@ -22,11 +22,11 @@ body {
   transition: all 0.3s ease;
 }
 
-.vantage-card:hover {
+.lumina-card:hover {
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
 }
 
-.vantage-btn-primary {
+.lumina-btn-primary {
   background-color: var(--primary);
   color: white;
   padding: 0.75rem 1.5rem;
@@ -35,7 +35,7 @@ body {
   transition: all 0.2s ease;
 }
 
-.vantage-btn-primary:hover {
+.lumina-btn-primary:hover {
   background-color: var(--primary-light);
 }
 

@@ -206,7 +206,7 @@ export default function EarlyWarning() {
             </div>
 
             {showHistory ? (
-                <div className="vantage-card p-8">
+                <div className="lumina-card p-8">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-xl font-black text-[#001b5e]">Counseling Success History</h2>
                         <button onClick={downloadReport} className="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2">
@@ -241,7 +241,7 @@ export default function EarlyWarning() {
                     <div className="lg:col-span-2 space-y-8">
                         {/* At-Risk List (Only shown to Admin/Staff) */}
                         {role && role !== 'student' && (
-                            <div className="vantage-card overflow-hidden">
+                            <div className="lumina-card overflow-hidden">
                                 <div className="p-6 border-b bg-slate-50/50">
                                     <h3 className="font-black text-[#001b5e]">Flagged for Intervention</h3>
                                 </div>
@@ -287,7 +287,7 @@ export default function EarlyWarning() {
                         )}
 
                         {/* Active Schedules List */}
-                        <div className="vantage-card overflow-hidden">
+                        <div className="lumina-card overflow-hidden">
                             <div className="p-6 border-b bg-slate-50/50">
                                 <h3 className="font-black text-[#001b5e]">Counseling Schedule (Active)</h3>
                             </div>
@@ -332,7 +332,7 @@ export default function EarlyWarning() {
 
                         {/* Teacher Complaints Feed (Only for Staff) */}
                         {role && role !== 'student' && (
-                            <div className="vantage-card overflow-hidden">
+                            <div className="lumina-card overflow-hidden">
                                 <div className="p-6 border-b bg-rose-50/30 flex justify-between items-center">
                                     <h3 className="font-black text-rose-900">Recent Teacher Complaints</h3>
                                     <span className="text-[10px] font-black bg-rose-100 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-widest">Period Tracking</span>
@@ -367,7 +367,7 @@ export default function EarlyWarning() {
 
                     <div className="space-y-8">
                         {role === 'student' && (
-                            <div className="vantage-card p-8 bg-[#001b5e] text-white">
+                            <div className="lumina-card p-8 bg-[#001b5e] text-white">
                                 <h3 className="text-xl font-black mb-4">Request Counseling</h3>
                                 <p className="text-sm text-blue-200 mb-8 leading-relaxed">Need help with your academic plan? Schedule a session with a counselor.</p>
                                 <button
@@ -380,7 +380,7 @@ export default function EarlyWarning() {
                         )}
 
                         {role && role !== 'student' && (
-                            <div className="vantage-card p-8 bg-rose-50 border-rose-100">
+                            <div className="lumina-card p-8 bg-rose-50 border-rose-100">
                                 <ShieldAlert className="w-10 h-10 text-rose-600 mb-6" />
                                 <h3 className="text-xl font-black text-[#001b5e] mb-2">Automated Early Warning</h3>
                                 <p className="text-sm text-slate-600 leading-relaxed font-medium mb-8">

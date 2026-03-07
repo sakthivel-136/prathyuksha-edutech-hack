@@ -141,7 +141,7 @@ export default function MindMapNLP() {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="lg:col-span-1 space-y-8">
-                    <div className="vantage-card p-8 bg-slate-900 text-white border-none min-h-[300px] flex flex-col shadow-2xl">
+                    <div className="lumina-card p-8 bg-slate-900 text-white border-none min-h-[300px] flex flex-col shadow-2xl">
                         <div className="flex items-center justify-between text-blue-400 mb-6 font-bold text-xs uppercase tracking-widest">
                             <span className="flex items-center gap-2"><Terminal className="w-4 h-4" /> OCR Log</span>
                             {processing && <div className="w-2 h-2 bg-rose-500 rounded-full animate-pulse"></div>}
@@ -175,7 +175,7 @@ export default function MindMapNLP() {
                         </div>
                     </div>
 
-                    <div className="vantage-card p-8">
+                    <div className="lumina-card p-8">
                         <h2 className="text-lg font-black text-[#001b5e] mb-6 flex items-center gap-2">
                             <Brain className="w-5 h-5 text-blue-500" />
                             Extracted Entities
@@ -195,7 +195,7 @@ export default function MindMapNLP() {
                 </div>
 
                 <div className="lg:col-span-3 space-y-8">
-                    <div className="vantage-card p-8 min-h-[600px] flex flex-col relative overflow-hidden bg-slate-50">
+                    <div className="lumina-card p-8 min-h-[600px] flex flex-col relative overflow-hidden bg-slate-50">
                         <div className="overflow-x-auto overflow-y-auto flex-1 custom-scrollbar">
                             <div className="flex items-center justify-between mb-8 relative z-10 sticky left-0 top-0">
                                 <div className="flex items-center gap-4">
@@ -269,7 +269,7 @@ export default function MindMapNLP() {
                                     </div>
                                     <div className="space-y-2">
                                         <h4 className="text-xl font-black text-slate-600">No Document Uploaded</h4>
-                                        <p className="text-slate-400 text-sm max-w-xs mx-auto">Upload a PDF Syllabus document. VANTAGE will scan it using AI OCR and map the most critical concepts into a structure.</p>
+                                        <p className="text-slate-400 text-sm max-w-xs mx-auto">Upload a PDF Syllabus document. LUMINA will scan it using AI OCR and map the most critical concepts into a structure.</p>
                                     </div>
                                 </div>
                             )}

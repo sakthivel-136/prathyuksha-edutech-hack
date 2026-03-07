@@ -193,68 +193,74 @@ export default function ExamsPage() {
             </div>
 
             {/* Premium Filters */}
-            <div className="vantage-card p-8 bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
+            <div className="lumina-card p-8 bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
                 <div className="flex flex-col md:flex-row items-center gap-6">
-                    <div className="flex-1 w-full grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="flex-1 w-full space-y-6">
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-[#001b5e] tracking-widest flex items-center gap-2">
                                 <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
                                 Department
                             </label>
-                            <select
-                                value={filters.dept}
-                                onChange={e => setFilters({ ...filters, dept: e.target.value })}
-                                className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl font-black text-[#001b5e] appearance-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all cursor-pointer"
-                            >
-                                <option value="">All Departments</option>
-                                <option value="CSE">Computer Science</option>
-                                <option value="ECE">Electronics (ECE)</option>
-                                <option value="MECH">Mechanical Eng.</option>
-                            </select>
+                            <div className="flex flex-wrap gap-2">
+                                {['ALL', 'CSE', 'ECE', 'MECH', 'IT', 'AI-DS'].map(d => (
+                                    <button
+                                        key={d}
+                                        onClick={() => setFilters({ ...filters, dept: d === 'ALL' ? '' : d })}
+                                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filters.dept === (d === 'ALL' ? '' : d) ? 'bg-[#001b5e] text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100'}`}
+                                    >
+                                        {d}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-[#001b5e] tracking-widest flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                                Academic Year
-                            </label>
-                            <select
-                                value={filters.year}
-                                onChange={e => setFilters({ ...filters, year: e.target.value })}
-                                className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl font-black text-[#001b5e] appearance-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all cursor-pointer"
-                            >
-                                <option value="">Select Year</option>
-                                <option value="1">1st Year</option>
-                                <option value="2">2nd Year</option>
-                                <option value="3">3rd Year</option>
-                                <option value="4">4th Year</option>
-                            </select>
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-black uppercase text-[#001b5e] tracking-widest flex items-center gap-2">
-                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
-                                Semester
-                            </label>
-                            <select
-                                value={filters.semester}
-                                onChange={e => setFilters({ ...filters, semester: e.target.value })}
-                                className="w-full bg-slate-50 border border-slate-200 p-4 rounded-2xl font-black text-[#001b5e] appearance-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all cursor-pointer"
-                            >
-                                <option value="">Select Semester</option>
-                                {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Semester {s}</option>)}
-                            </select>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-[#001b5e] tracking-widest flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                                    Year
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {['ALL', '1', '2', '3', '4'].map(y => (
+                                        <button
+                                            key={y}
+                                            onClick={() => setFilters({ ...filters, year: y === 'ALL' ? '' : y })}
+                                            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filters.year === (y === 'ALL' ? '' : y) ? 'bg-[#001b5e] text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100'}`}
+                                        >
+                                            {y === 'ALL' ? 'ALL' : `Year ${y}`}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-black uppercase text-[#001b5e] tracking-widest flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                    Semester
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {['ALL', '1', '2', '3', '4', '5', '6', '7', '8'].map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => setFilters({ ...filters, semester: s === 'ALL' ? '' : s })}
+                                            className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${filters.semester === (s === 'ALL' ? '' : s) ? 'bg-[#001b5e] text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100'}`}
+                                        >
+                                            {s === 'ALL' ? 'ALL' : `Sem ${s}`}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
             {exams.length === 0 ? (
-                <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="lumina-card p-16 flex flex-col items-center justify-center text-center space-y-4">
                     <Inbox className="w-16 h-16 text-slate-200" />
                     <h3 className="text-xl font-black text-[#001b5e]">No Exams Scheduled</h3>
                     <p className="text-slate-400 max-w-sm">No exam schedule has been published yet for these criteria.</p>
                 </div>
             ) : (
-                <div className="vantage-card overflow-hidden">
+                <div className="lumina-card overflow-hidden">
                     <div className="divide-y divide-slate-100">
                         {exams.map((exam, i: number) => {
                             const isArrear = exam.semester < (parseInt(filters.year || '1') * 2 - 1)

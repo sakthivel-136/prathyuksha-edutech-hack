@@ -13,7 +13,7 @@ from auth import (
 )
 
 logging.basicConfig(level=logging.INFO)
-app = FastAPI(title="Integrated Academic AI Backend", version="1.0.0")
+app = FastAPI(title="Lumina Academy Integrated Backend", version="1.0.0")
 
 # CORS setup
 app.add_middleware(
@@ -97,10 +97,10 @@ async def login_for_access_token(data: LoginRequest):
     from auth import create_access_token, supabase, ACCESS_TOKEN_EXPIRE_MINUTES
     from datetime import timedelta
     
-    if data.email == "coe@vantage.edu" and data.password == "coe123":
+    if data.email == "coe@lumina.edu" and data.password == "coe123":
         access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
-            data={"sub": "coe@vantage.edu"}, expires_delta=access_token_expires
+            data={"sub": "coe@lumina.edu"}, expires_delta=access_token_expires
         )
         return {
             "access_token": access_token, 

@@ -67,7 +67,7 @@ export default function InequalityPage() {
 
                     <div className="space-y-4">
                         {inequalityData.map((item, idx) => (
-                            <div key={idx} className="vantage-card p-6 border-l-4" style={{ borderLeftColor: item.impact === 'High' ? '#e11d48' : item.impact === 'Moderate' ? '#f59e0b' : '#10b981' }}>
+                            <div key={idx} className="lumina-card p-6 border-l-4" style={{ borderLeftColor: item.impact === 'High' ? '#e11d48' : item.impact === 'Moderate' ? '#f59e0b' : '#10b981' }}>
                                 <div className="flex justify-between items-start mb-4">
                                     <h3 className="font-black text-lg text-[#001b5e]">{item.factor}</h3>
                                     <span className={`text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full ${item.impact === 'High' ? 'bg-rose-100 text-rose-700' :
@@ -115,7 +115,7 @@ export default function InequalityPage() {
                         <h2 className="text-2xl font-black text-[#001b5e]">Risk Sensitivity Heatmap</h2>
                     </div>
 
-                    <div className="vantage-card p-6">
+                    <div className="lumina-card p-6">
                         <p className="text-sm text-slate-500 mb-6 font-medium">
                             Derived via Average Absolute SHAP Impact. Assesses which features are actively driving student failure predictions this semester compared to historical baselines.
                         </p>

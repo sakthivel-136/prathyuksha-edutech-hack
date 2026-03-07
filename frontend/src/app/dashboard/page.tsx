@@ -107,7 +107,7 @@ export default function Dashboard() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: i * 0.1 }}
               key={i}
-              className="vantage-card p-6 space-y-4 hover:border-blue-200 group transition-all"
+              className="lumina-card p-6 space-y-4 hover:border-blue-200 group transition-all"
             >
               <div className={`w-12 h-12 ${stat.bg} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
                 <Icon className={`w-6 h-6 ${stat.color}`} />
@@ -130,7 +130,7 @@ export default function Dashboard() {
         {/* Left Column: Role-Specific Feature */}
         <div className="lg:col-span-2 space-y-8">
           {role === 'student' && (
-            <div className="vantage-card p-8 !bg-gradient-to-br from-blue-900 to-[#001b5e] text-white relative overflow-hidden">
+            <div className="lumina-card p-8 !bg-gradient-to-br from-blue-900 to-[#001b5e] text-white relative overflow-hidden">
               <div className="relative z-10 space-y-6">
                 <div className="flex justify-between items-start">
                   <div>
@@ -167,7 +167,7 @@ export default function Dashboard() {
           )}
 
           {(role === 'admin' || role === 'coe') && (
-            <div className="vantage-card p-8 !bg-slate-900 text-white relative overflow-hidden">
+            <div className="lumina-card p-8 !bg-slate-900 text-white relative overflow-hidden">
               <div className="absolute -top-24 -right-24 w-64 h-64 bg-blue-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
               <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500 rounded-full blur-[100px] opacity-20 pointer-events-none"></div>
               <div className="flex justify-between items-center mb-8 relative z-10">
@@ -210,7 +210,7 @@ export default function Dashboard() {
             <h2 className="text-xl font-black text-[#001b5e]">Critical Portals</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {quickLinks.map((link, i) => (
-                <Link key={i} href={link.path} className="vantage-card p-6 flex items-center justify-between group hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer">
+                <Link key={i} href={link.path} className="lumina-card p-6 flex items-center justify-between group hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer">
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center border border-blue-100 group-hover:bg-[#001b5e] group-hover:border-[#001b5e] transition-all">
                       <link.icon className="w-5 h-5 text-[#001b5e] group-hover:text-white transition-all" />
@@ -229,7 +229,7 @@ export default function Dashboard() {
 
         {/* Right Column: Supplemental Info */}
         <div className="space-y-8">
-          <div className="vantage-card p-6 space-y-6">
+          <div className="lumina-card p-6 space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="font-black text-[#001b5e]">Activity Stream</h3>
               <Clock className="w-4 h-4 text-slate-300" />
@@ -257,7 +257,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="vantage-card p-6 bg-blue-50/50 border-blue-100">
+          <div className="lumina-card p-6 bg-blue-50/50 border-blue-100">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
                 <TrendingUp className="w-5 h-5 text-[#001b5e]" />

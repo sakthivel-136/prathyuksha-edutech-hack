@@ -86,7 +86,7 @@ export default function PerformancePredictor() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="vantage-card p-8">
+                    <div className="lumina-card p-8">
                         <h2 className="text-xl font-black text-[#001b5e] mb-8 flex items-center gap-2">
                             <Sparkles className="w-5 h-5 text-blue-500" />
                             Input Features (XGBoost Input)
@@ -137,7 +137,7 @@ export default function PerformancePredictor() {
                         </button>
                     </div>
 
-                    <div className="vantage-card p-8 bg-slate-900 text-white border-none">
+                    <div className="lumina-card p-8 bg-slate-900 text-white border-none">
                         <h2 className="text-xl font-black mb-8">Model Explainability (SHAP)</h2>
                         <div className="h-48 flex items-center justify-center border border-white/10 rounded-2xl bg-white/5 text-slate-500 font-bold">
                             Feature Influence Chart Loading...
@@ -146,7 +146,7 @@ export default function PerformancePredictor() {
                 </div>
 
                 <div className="space-y-8">
-                    <div className="vantage-card p-8 border-blue-100 bg-blue-50/30">
+                    <div className="lumina-card p-8 border-blue-100 bg-blue-50/30">
                         <h2 className="text-xl font-black text-[#001b5e] mb-8">Prediction Results</h2>
 
                         {prediction ? (
@@ -190,7 +190,7 @@ export default function PerformancePredictor() {
                         )}
                     </div>
 
-                    <div className="vantage-card p-8">
+                    <div className="lumina-card p-8">
                         <h2 className="text-xl font-black text-[#001b5e] mb-6 flex items-center gap-2">
                             <AlertCircle className="w-5 h-5 text-amber-500" />
                             Intervention Strategy

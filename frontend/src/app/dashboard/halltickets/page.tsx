@@ -139,7 +139,7 @@ export default function HallTickets() {
       </head>
       <body>
         <div class="header">
-          <div><div class="logo">VANTAGE</div><div class="subtitle">Academic & Examination Management</div></div>
+          <div><div class="logo">LUMINA</div><div class="subtitle">Academic & Examination Management</div></div>
         </div>
         <div class="info-grid">
           <div class="info-item"><label>Student Name</label><p>${profile.full_name}</p></div>
@@ -149,14 +149,14 @@ export default function HallTickets() {
         <table><thead><tr><th>Code</th><th>Subject</th><th>Date</th><th>Time</th><th>Room</th></tr></thead><tbody>${examRows}</tbody></table>
         <div class="qr-section">
           <img src="${qrUrl}" width="120" height="120" crossorigin="anonymous" />
-          <div style="font-size:12px;font-weight:700;margin-top:10px">VANTAGE Digital Identity Verification</div>
+          <div style="font-size:12px;font-weight:700;margin-top:10px">LUMINA Digital Identity Verification</div>
         </div>
         <div class="seal">
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Student Signature</div></div>
           ${coeApproved ? '<div class="seal-item" style="color:#10b981;font-weight:900;">✅ APPROVED BY COE</div>' : ''}
           <div class="seal-item"><div class="seal-line"></div><div class="seal-label">Controller of Examinations</div></div>
         </div>
-        <div class="footer">Generated: ${new Date().toLocaleString()} | Vantage v1.0</div>
+        <div class="footer">Generated: ${new Date().toLocaleString()} | Lumina v1.0</div>
       </body></html>
     `;
 
@@ -212,28 +212,46 @@ export default function HallTickets() {
             </div>
 
             {isAdmin && (
-                <div className="vantage-card p-6 border-blue-100 bg-blue-50/30">
+                <div className="lumina-card p-6 border-blue-100 bg-blue-50/30">
                     <h3 className="font-black text-[#001b5e] mb-2 flex items-center gap-2">
                         <Send className="w-5 h-5" /> Admin: Publish Hall Tickets by Scope
                     </h3>
 
-                    <div className="flex items-center gap-4 mb-4 bg-white p-4 rounded-xl border border-blue-100 shadow-sm">
-                        <select value={publishScope.department} onChange={e => setPublishScope({ ...publishScope, department: e.target.value })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
-                            <option value="CSE">CSE</option>
-                            <option value="ECE">ECE</option>
-                            <option value="MECH">MECH</option>
-                            <option value="IT">IT</option>
-                        </select>
-                        <select value={publishScope.year_of_study} onChange={e => setPublishScope({ ...publishScope, year_of_study: parseInt(e.target.value) })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
-                            <option value={1}>1st Year</option>
-                            <option value={2}>2nd Year</option>
-                            <option value={3}>3rd Year</option>
-                            <option value={4}>4th Year</option>
-                        </select>
-                        <select value={publishScope.semester} onChange={e => setPublishScope({ ...publishScope, semester: parseInt(e.target.value) })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Sem {s}</option>)}
-                        </select>
-                        <button onClick={handlePublish} disabled={publishing} className="bg-[#001b5e] text-white px-6 py-2 rounded-lg font-bold text-sm ml-auto">
+                    <div className="space-y-4 mb-6">
+                        <div className="flex flex-wrap gap-2 pt-2">
+                            {['CSE', 'ECE', 'MECH', 'IT'].map(d => (
+                                <button
+                                    key={d}
+                                    onClick={() => setPublishScope({ ...publishScope, department: d })}
+                                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${publishScope.department === d ? 'bg-[#001b5e] text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100'}`}
+                                >
+                                    {d}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {[1, 2, 3, 4].map(y => (
+                                <button
+                                    key={y}
+                                    onClick={() => setPublishScope({ ...publishScope, year_of_study: y })}
+                                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${publishScope.year_of_study === y ? 'bg-[#001b5e] text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100'}`}
+                                >
+                                    Year {y}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => setPublishScope({ ...publishScope, semester: s })}
+                                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${publishScope.semester === s ? 'bg-[#001b5e] text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100'}`}
+                                >
+                                    Sem {s}
+                                </button>
+                            ))}
+                        </div>
+                        <button onClick={handlePublish} disabled={publishing} className="bg-[#001b5e] text-white px-8 py-3 rounded-2xl font-black shadow-xl w-full sm:w-auto mt-2">
                             {publishing ? 'Publishing...' : 'Publish Selected Scope'}
                         </button>
                     </div>
@@ -248,7 +266,7 @@ export default function HallTickets() {
                                     {publications.map((p, i) => (
                                         <li key={i} className="bg-blue-100 text-blue-800 text-xs font-black px-3 py-1 rounded-full flex items-center gap-1">
                                             {p.department || 'ALL'}, Yr {p.year_of_study || 'ALL'}, Sem {p.semester || 'ALL'}
-                                            {p.published_by === 'coe@vantage.edu' ? ' ✅ (COE)' : ' ⏳ (Pending)'}
+                                            {p.is_coe_approved ? ' ✅ (COE)' : ' ⏳ (Pending)'}
                                         </li>
                                     ))}
                                 </ul>
@@ -264,28 +282,46 @@ export default function HallTickets() {
             )}
 
             {isCoe && (
-                <div className="vantage-card p-6 border-emerald-100 bg-emerald-50/30">
+                <div className="lumina-card p-6 border-emerald-100 bg-emerald-50/30">
                     <h3 className="font-black text-emerald-900 mb-2 flex items-center gap-2">
                         <Shield className="w-5 h-5" /> COE approval & Publishing
                     </h3>
 
-                    <div className="flex items-center gap-4 mb-4 bg-white p-4 rounded-xl border border-emerald-100 shadow-sm">
-                        <select value={publishScope.department} onChange={e => setPublishScope({ ...publishScope, department: e.target.value })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
-                            <option value="CSE">CSE</option>
-                            <option value="ECE">ECE</option>
-                            <option value="MECH">MECH</option>
-                            <option value="IT">IT</option>
-                        </select>
-                        <select value={publishScope.year_of_study} onChange={e => setPublishScope({ ...publishScope, year_of_study: parseInt(e.target.value) })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
-                            <option value={1}>1st Year</option>
-                            <option value={2}>2nd Year</option>
-                            <option value={3}>3rd Year</option>
-                            <option value={4}>4th Year</option>
-                        </select>
-                        <select value={publishScope.semester} onChange={e => setPublishScope({ ...publishScope, semester: parseInt(e.target.value) })} className="bg-slate-50 border p-2 rounded-lg font-bold text-sm">
-                            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Sem {s}</option>)}
-                        </select>
-                        <button onClick={handlePublish} disabled={publishing} className="bg-emerald-600 shadow-lg shadow-emerald-200 text-white px-6 py-2 rounded-lg font-bold text-sm ml-auto">
+                    <div className="space-y-4 mb-6">
+                        <div className="flex flex-wrap gap-2 pt-2">
+                            {['CSE', 'ECE', 'MECH', 'IT'].map(d => (
+                                <button
+                                    key={d}
+                                    onClick={() => setPublishScope({ ...publishScope, department: d })}
+                                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${publishScope.department === d ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-slate-400 border border-emerald-100'}`}
+                                >
+                                    {d}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {[1, 2, 3, 4].map(y => (
+                                <button
+                                    key={y}
+                                    onClick={() => setPublishScope({ ...publishScope, year_of_study: y })}
+                                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${publishScope.year_of_study === y ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-slate-400 border border-emerald-100'}`}
+                                >
+                                    Year {y}
+                                </button>
+                            ))}
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                            {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => setPublishScope({ ...publishScope, semester: s })}
+                                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${publishScope.semester === s ? 'bg-emerald-600 text-white shadow-lg' : 'bg-white text-slate-400 border border-emerald-100'}`}
+                                >
+                                    Sem {s}
+                                </button>
+                            ))}
+                        </div>
+                        <button onClick={handlePublish} disabled={publishing} className="bg-emerald-600 shadow-lg shadow-emerald-200 text-white px-8 py-3 rounded-2xl font-black w-full sm:w-auto mt-2">
                             {publishing ? 'Publishing...' : 'Approve & Publish Scope'}
                         </button>
                     </div>
@@ -343,7 +379,7 @@ export default function HallTickets() {
             )}
 
             {(isStudent && (!canDownload)) && (
-                <div className="vantage-card p-16 text-center space-y-4">
+                <div className="lumina-card p-16 text-center space-y-4">
                     <Lock className="w-16 h-16 text-slate-200 mx-auto" />
                     <h3 className="text-xl font-black text-[#001b5e]">Hall Tickets Not Available</h3>
                     <p className="text-slate-500 font-bold text-sm">Your department or year has not been published yet.</p>
@@ -351,9 +387,9 @@ export default function HallTickets() {
             )}
 
             {canDownload && (
-                <div className="vantage-card overflow-hidden">
+                <div className="lumina-card overflow-hidden">
                     <div className="bg-[#001b5e] p-8 text-white">
-                        <h2 className="text-2xl font-black">VANTAGE</h2>
+                        <h2 className="text-2xl font-black">LUMINA</h2>
                         <p className="text-blue-300 text-xs font-bold uppercase tracking-widest">Hall Ticket 2025-26</p>
                     </div>
                     <div className="p-8 grid grid-cols-2 md:grid-cols-4 gap-6 bg-slate-50">

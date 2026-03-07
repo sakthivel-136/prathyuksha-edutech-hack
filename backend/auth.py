@@ -54,7 +54,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         if email is None:
             raise credentials_exception
             
-        if email == "coe@vantage.edu":
+        if email == "coe@lumina.edu":
             return {
                 "id": "coe-special-id",
                 "email": email,

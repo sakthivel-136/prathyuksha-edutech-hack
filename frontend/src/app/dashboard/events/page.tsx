@@ -83,7 +83,7 @@ export default function EventSubmissions() {
 
             {/* Submit Form */}
             {showForm && (
-                <form onSubmit={handleSubmit} className="vantage-card p-8 space-y-6">
+                <form onSubmit={handleSubmit} className="lumina-card p-8 space-y-6">
                     <h2 className="text-lg font-black text-[#001b5e]">New Event Submission</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -124,7 +124,7 @@ export default function EventSubmissions() {
 
             {/* Submissions List */}
             {submissions.length === 0 ? (
-                <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="lumina-card p-16 flex flex-col items-center justify-center text-center space-y-4">
                     <Inbox className="w-16 h-16 text-slate-200" />
                     <h3 className="text-xl font-black text-[#001b5e]">No Event Submissions</h3>
                     <p className="text-slate-400 max-w-sm">No events have been submitted yet. Click "Submit Event" to propose a new event for admin approval.</p>
@@ -132,7 +132,7 @@ export default function EventSubmissions() {
             ) : (
                 <div className="space-y-4">
                     {submissions.map((sub: any, i: number) => (
-                        <div key={i} className="vantage-card p-6 flex items-center justify-between hover:shadow-lg transition-all">
+                        <div key={i} className="lumina-card p-6 flex items-center justify-between hover:shadow-lg transition-all">
                             <div className="flex items-center gap-6">
                                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${sub.status === 'approved' ? 'bg-emerald-50' : sub.status === 'rejected' ? 'bg-rose-50' : 'bg-amber-50'
                                     }`}>

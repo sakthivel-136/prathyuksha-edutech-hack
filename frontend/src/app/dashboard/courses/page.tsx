@@ -90,16 +90,24 @@ export default function CoursesPage() {
                     <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Academic Portal</p>
                     <h1 className="text-4xl font-black text-[#001b5e]">Courses & Recommendations</h1>
                 </div>
-                {role === 'admin' && (
-                    <button onClick={() => setShowAddModal(true)} className="bg-[#001b5e] text-white px-6 py-3 rounded-2xl font-black shadow-xl hover:scale-105 transition-all flex items-center gap-2">
-                        <Inbox className="w-4 h-4" /> Add Recommendation
-                    </button>
-                )}
-                {role === 'coe' && (
-                    <button onClick={() => setShowAddModal(true)} className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-black shadow-xl hover:scale-105 transition-all flex items-center gap-2">
-                        <Plus className="w-4 h-4" /> Assign Student to Course
-                    </button>
-                )}
+                <div className="flex gap-3">
+                    {(role === 'admin' || role === 'coe') && (
+                        <>
+                            <button
+                                onClick={() => { setModalType('global'); setShowAddModal(true) }}
+                                className="bg-[#001b5e] text-white px-6 py-3 rounded-2xl font-black shadow-xl hover:scale-105 transition-all flex items-center gap-2 text-sm"
+                            >
+                                <Plus className="w-4 h-4" /> Add Global Course
+                            </button>
+                            <button
+                                onClick={() => { setModalType('study'); setShowAddModal(true) }}
+                                className="bg-emerald-600 text-white px-6 py-3 rounded-2xl font-black shadow-xl hover:scale-105 transition-all flex items-center gap-2 text-sm"
+                            >
+                                <BookOpen className="w-4 h-4" /> Assign Personal Study Path
+                            </button>
+                        </>
+                    )}
+                </div>
             </div>
 
             <section className="space-y-6">
@@ -131,7 +139,7 @@ export default function CoursesPage() {
                 </div>
 
                 {curriculum.length === 0 ? (
-                    <div className="vantage-card p-12 text-center text-slate-400 font-bold border-dashed border-2">
+                    <div className="lumina-card p-12 text-center text-slate-400 font-bold border-dashed border-2">
                         No curriculum data available for this selection.
                     </div>
                 ) : (
@@ -153,14 +161,14 @@ export default function CoursesPage() {
             <section className="space-y-6">
                 <h2 className="text-2xl font-black text-[#001b5e]">Your Enrolled Courses</h2>
                 {courses.length === 0 ? (
-                    <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="lumina-card p-16 flex flex-col items-center justify-center text-center space-y-4">
                         <Inbox className="w-16 h-16 text-slate-200" />
                         <h3 className="text-xl font-black text-[#001b5e]">No Active Enrollments</h3>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {courses.map((course, i) => (
-                            <div key={i} className="vantage-card p-6 space-y-4 hover:shadow-xl transition-all group">
+                            <div key={i} className="lumina-card p-6 space-y-4 hover:shadow-xl transition-all group">
                                 <div className="flex justify-between items-start">
                                     <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#001b5e] font-black text-sm border border-blue-100">
                                         {(course.course_code?.toString() || '??').slice(0, 2)}
@@ -181,10 +189,10 @@ export default function CoursesPage() {
                 <h2 className="text-2xl font-black text-[#001b5e]">Curated Study Path & Recommendations</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {recommendations.length === 0 ? (
-                        <div className="vantage-card p-8 text-center text-slate-400">No recommendations available yet.</div>
+                        <div className="lumina-card p-8 text-center text-slate-400">No recommendations available yet.</div>
                     ) : (
                         recommendations.map((rec, i) => (
-                            <div key={i} className={`vantage-card p-8 border-l-4 ${rec.type === 'course' ? 'border-l-blue-600' : 'border-l-emerald-500'} flex justify-between items-start gap-6`}>
+                            <div key={i} className={`lumina-card p-8 border-l-4 ${rec.type === 'course' ? 'border-l-blue-600' : 'border-l-emerald-500'} flex justify-between items-start gap-6`}>
                                 <div className="space-y-2">
                                     <span className={`text-[10px] font-black uppercase tracking-widest ${rec.type === 'course' ? 'text-blue-600' : 'text-emerald-600'}`}>{rec.type}</span>
                                     <h3 className="text-xl font-black text-[#001b5e]">{rec.title}</h3>
@@ -201,42 +209,7 @@ export default function CoursesPage() {
                 </div>
             </section>
 
-            {showAddModal && modalType === 'global' && role === 'admin' && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-                    <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl space-y-6">
-                        <h2 className="text-2xl font-black text-[#001b5e]">Add Global Course</h2>
-                        <form onSubmit={handleAddRecommendation} className="space-y-4">
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-slate-400">Title</label>
-                                <input required name="title" className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-slate-400">Description</label>
-                                <textarea required name="description" className="w-full bg-slate-50 border p-3 rounded-xl font-bold h-24" />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-slate-400">Resource Link (Optional)</label>
-                                <input name="link" className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="https://..." />
-                            </div>
-                            <div className="space-y-1">
-                                <label className="text-[10px] font-black uppercase text-slate-400">Type</label>
-                                <select name="type" className="w-full bg-slate-50 border p-3 rounded-xl font-bold uppercase">
-                                    <option value="course">Course</option>
-                                    <option value="resource">Resource / External</option>
-                                </select>
-                            </div>
-                            <div className="flex gap-4 pt-4">
-                                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 bg-slate-100 py-3 rounded-xl font-bold">Cancel</button>
-                                <button type="submit" disabled={submitting} className="flex-1 bg-[#001b5e] text-white py-3 rounded-xl font-black">
-                                    {submitting ? 'Adding...' : 'Save'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            )}
-
-            {showAddModal && modalType === 'study' && role === 'coe' && (
+            {showAddModal && (
                 <COEActionModal
                     type={modalType}
                     onClose={() => setShowAddModal(false)}

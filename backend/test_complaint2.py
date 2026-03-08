@@ -1,7 +1,7 @@
 import requests
 
 # Login as admin with correct email
-for email, pwd in [("admin@university.edu", "admin123"), ("coe@vantage.edu", "coe123")]:
+for email, pwd in [("admin@university.edu", "admin123"), ("coe@lumina.edu", "coe123")]:
     res = requests.post("http://localhost:8000/api/login", json={"email": email, "password": pwd})
     print(f"Login {email}:", res.status_code, res.json().get("role"), res.json().get("access_token","")[:30])
     if res.status_code == 200:

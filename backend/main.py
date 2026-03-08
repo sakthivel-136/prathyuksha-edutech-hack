@@ -1319,10 +1319,10 @@ async def unpublish_hall_tickets(scope: HallTicketPublishScope = None, current_u
 @app.get("/api/me/profile")
 async def get_full_profile(current_user: dict = Depends(get_current_user)):
     from auth import supabase as sb
-    if current_user["email"] == "coe@vantage.edu":
+    if current_user["email"] == "coe@lumina.edu":
         return {
             "full_name": "Controller of Examinations",
-            "email": "coe@vantage.edu",
+            "email": "coe@lumina.edu",
             "role": "coe",
             "roll_number": "COE-001",
             "department": "Administration"

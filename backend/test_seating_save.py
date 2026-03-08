@@ -1,6 +1,6 @@
 import requests
 
-res = requests.post("http://localhost:8000/api/login", json={"email": "coe@vantage.edu", "password": "coe123"})
+res = requests.post("http://localhost:8000/api/login", json={"email": "coe@lumina.edu", "password": "coe123"})
 token = res.json().get("access_token")
 
 headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}

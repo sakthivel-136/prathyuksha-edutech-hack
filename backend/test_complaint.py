@@ -1,7 +1,7 @@
 import requests
 
 # Login as admin
-res = requests.post("http://localhost:8000/api/login", json={"email": "admin@vantage.edu", "password": "admin123"})
+res = requests.post("http://localhost:8000/api/login", json={"email": "admin@lumina.edu", "password": "admin123"})
 if res.status_code != 200:
     print("Login failed:", res.text)
     exit(1)

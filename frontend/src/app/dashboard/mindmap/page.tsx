@@ -203,7 +203,7 @@ export default function MindMapNLP() {
                                         <FileText className="w-6 h-6 text-blue-600" />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-[#001b5e] uppercase">{(results && results.filename) ? results.filename : (file ? file.name : "VANTAGE Knowledge Graph")}</h3>
+                                        <h3 className="font-black text-[#001b5e] uppercase">{(results && results.filename) ? results.filename : (file ? file.name : "LUMINA Knowledge Graph")}</h3>
                                         <p className="text-xs font-bold text-slate-400">Semantic Node Trees</p>
                                     </div>
                                 </div>

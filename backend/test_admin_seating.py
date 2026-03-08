@@ -1,7 +1,7 @@
 import requests
 
 # 1. Login as coe
-res = requests.post("http://localhost:8000/api/login", json={"email": "coe@vantage.edu", "password": "coe123"})
+res = requests.post("http://localhost:8000/api/login", json={"email": "coe@lumina.edu", "password": "coe123"})
 if res.status_code != 200:
     print("login failed:", res.text)
     exit(1)

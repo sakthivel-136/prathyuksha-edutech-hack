@@ -28,7 +28,7 @@ def create_students():
     for year in range(1, 5):
         for idx, dept in enumerate(departments):
             roll_no = f"{year}{idx+1}001"
-            email = f"student_{year}_{dept.lower()}@vantage.edu"
+            email = f"student_{year}_{dept.lower()}@lumina.edu"
             
             students.append({
                 "id": str(uuid.uuid4()),

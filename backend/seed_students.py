@@ -21,7 +21,7 @@ for dept in departments:
             # Generate 5 students per combo
             for i in range(1, 6):
                 stu_id = str(uuid.uuid4())
-                email = f"student_{dept.lower()}_{year}{sec}_{i}@vantage.edu"
+                email = f"student_{dept.lower()}_{year}{sec}_{i}@lumina.edu"
                 roll = f"{dept}{year}0{i}{sec}"
                 name = f"Test Student {dept} Y{year} Sec{sec} {i}"
                 

@@ -67,7 +67,7 @@ export default function Sidebar() {
                     <div className="w-12 h-12 overflow-hidden rounded-2xl flex items-center justify-center">
                         <img src="/logo.png" alt="Lumina" className="w-full h-full object-cover border-2 border-white/20 shadow-xl" />
                     </div>
-                    <span className="text-3xl font-black text-white tracking-widest uppercase">Lumina</span>
+                    <span className="text-3xl font-black text-white tracking-widest uppercase">VantageEdu</span>
                 </div>
 
                 <div className="space-y-1">

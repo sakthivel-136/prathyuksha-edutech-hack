@@ -39,7 +39,7 @@ export default function StudyRecommender() {
                 </div>
             </div>
 
-            <div className="lumina-card p-10 bg-[#001b5e] text-white border-none shadow-blue-900/40 relative overflow-hidden">
+            <div className="vantage-card p-10 bg-[#001b5e] text-white border-none shadow-blue-900/40 relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32"></div>
                 <div className="relative z-10 space-y-8">
                     <div className="flex items-center gap-3">
@@ -74,7 +74,7 @@ export default function StudyRecommender() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {recommendations.map((res, i) => (
-                        <div key={i} className="lumina-card p-6 flex gap-6 hover:shadow-xl hover:border-blue-100 transition-all group">
+                        <div key={i} className="vantage-card p-6 flex gap-6 hover:shadow-xl hover:border-blue-100 transition-all group">
                             <div className="w-24 h-24 rounded-2xl bg-slate-50 flex items-center justify-center shrink-0 border border-slate-100 relative overflow-hidden">
                                 {res.type === 'Video' ? <Play className="w-8 h-8 text-blue-600 fill-current" /> : <BookOpen className="w-8 h-8 text-indigo-600" />}
                                 <div className="absolute bottom-0 inset-x-0 h-1 bg-blue-600 opacity-0 group-hover:opacity-100 transition-all"></div>
@@ -105,7 +105,7 @@ export default function StudyRecommender() {
                 </div>
             </div>
 
-            <div className="lumina-card p-8 border-none bg-emerald-50/50">
+            <div className="vantage-card p-8 border-none bg-emerald-50/50">
                 <div className="flex gap-4 items-center">
                     <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-emerald-600">
                         <Sparkles className="w-6 h-6" />

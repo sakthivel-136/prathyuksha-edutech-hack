@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Lumina Academy",
+  title: "VantageEdu",
   description: "Premium Educational Technology Platform",
 };
 

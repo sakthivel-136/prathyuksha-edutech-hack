@@ -199,7 +199,7 @@ export default function ExamsPage() {
             </div>
 
             {/* Premium Filters */}
-            <div className="lumina-card p-8 bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
+            <div className="vantage-card p-8 bg-white border border-slate-100 shadow-xl shadow-slate-200/50">
                 <div className="flex flex-col md:flex-row items-center gap-6">
                     <div className="flex-1 w-full space-y-6">
                         <div className="space-y-2">
@@ -260,13 +260,13 @@ export default function ExamsPage() {
             </div>
 
             {exams.length === 0 ? (
-                <div className="lumina-card p-16 flex flex-col items-center justify-center text-center space-y-4">
+                <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
                     <Inbox className="w-16 h-16 text-slate-200" />
                     <h3 className="text-xl font-black text-[#001b5e]">No Exams Scheduled</h3>
                     <p className="text-slate-400 max-w-sm">No exam schedule has been created yet for these criteria.</p>
                 </div>
             ) : (
-                <div className="lumina-card overflow-hidden">
+                <div className="vantage-card overflow-hidden">
                     <div className="divide-y divide-slate-100">
                         {exams.map((exam, i: number) => {
                             const isArrear = exam.semester < (parseInt(filters.year || '1') * 2 - 1)
@@ -361,17 +361,46 @@ export default function ExamsPage() {
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black uppercase text-slate-400">Year</label>
-                                    <select value={newExam.year_of_study} onChange={e => setNewExam({ ...newExam, year_of_study: parseInt(e.target.value) })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
-                                        <option value={1}>1st</option>
-                                        <option value={2}>2nd</option>
-                                        <option value={3}>3rd</option>
-                                        <option value={4}>4th</option>
+                                    <select
+                                        value={newExam.year_of_study}
+                                        onChange={e => {
+                                            const y = parseInt(e.target.value);
+                                            // Auto-update semester to the first one of that year if current sem is not in range
+                                            const minSem = (y - 1) * 2 + 1;
+                                            const maxSem = y * 2;
+                                            let nextSem = newExam.semester;
+                                            if (nextSem < minSem || nextSem > maxSem) {
+                                                nextSem = minSem;
+                                            }
+                                            setNewExam({ ...newExam, year_of_study: y, semester: nextSem });
+                                        }}
+                                        className="w-full bg-slate-50 border p-3 rounded-xl font-bold"
+                                    >
+                                        <option value={1}>1st Year</option>
+                                        <option value={2}>2nd Year</option>
+                                        <option value={3}>3rd Year</option>
+                                        <option value={4}>4th Year</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black uppercase text-slate-400">Semester</label>
-                                    <select value={newExam.semester} onChange={e => setNewExam({ ...newExam, semester: parseInt(e.target.value) })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
-                                        {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Sem {s}</option>)}
+                                    <select
+                                        value={newExam.semester}
+                                        onChange={e => {
+                                            const s = parseInt(e.target.value);
+                                            // Auto-update year based on semester
+                                            const y = Math.ceil(s / 2);
+                                            setNewExam({ ...newExam, semester: s, year_of_study: y });
+                                        }}
+                                        className="w-full bg-slate-50 border p-3 rounded-xl font-bold"
+                                    >
+                                        {[1, 2, 3, 4, 5, 6, 7, 8]
+                                            .filter(s => {
+                                                const yearForSem = Math.ceil(s / 2);
+                                                return yearForSem === newExam.year_of_study;
+                                            })
+                                            .map(s => <option key={s} value={s}>Sem {s}</option>)
+                                        }
                                     </select>
                                 </div>
                             </div>

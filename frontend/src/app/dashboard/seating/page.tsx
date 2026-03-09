@@ -142,7 +142,7 @@ export default function SeatingAllocator() {
 
     const UserSearchPortal = () => (
         <div className="space-y-8 fade-in">
-            <div className="lumina-card p-8 bg-gradient-to-br from-[#001b5e] to-[#003399] text-white">
+            <div className="vantage-card p-8 bg-gradient-to-br from-[#001b5e] to-[#003399] text-white">
                 <h2 className="text-3xl font-black mb-2 flex items-center gap-4">
                     <Search className="w-8 h-8" /> Seating Lookup
                 </h2>
@@ -177,7 +177,7 @@ export default function SeatingAllocator() {
             ) : searchResults.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {searchResults.map((s: any, i: number) => (
-                        <div key={i} className="lumina-card p-6 border-l-4 border-l-blue-600 space-y-4 hover:shadow-xl transition-all">
+                        <div key={i} className="vantage-card p-6 border-l-4 border-l-blue-600 space-y-4 hover:shadow-xl transition-all">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h3 className="text-lg font-black text-[#001b5e]">{s.user_profiles?.full_name || 'Student'}</h3>
@@ -203,7 +203,7 @@ export default function SeatingAllocator() {
                     ))}
                 </div>
             ) : searchQuery && !loadingSearch && (
-                <div className="lumina-card p-12 text-center text-slate-400 font-bold">No records found for that search.</div>
+                <div className="vantage-card p-12 text-center text-slate-400 font-bold">No records found for that search.</div>
             )}
         </div>
     )
@@ -623,7 +623,7 @@ export default function SeatingAllocator() {
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                 <div className="space-y-8">
                     {role === 'coe' ? (
-                        <div className="lumina-card p-8">
+                        <div className="vantage-card p-8">
                             <h2 className="text-lg font-black text-[#001b5e] mb-6 flex items-center gap-2">
                                 <Settings2 className="w-5 h-5 text-blue-500" />
                                 Optimization Engine
@@ -734,8 +734,7 @@ export default function SeatingAllocator() {
                             </button>
                         </div>
                     ) : (
-                        <div className="lumina-card p-6 bg-blue-50 border border-blue-100">
-                            <p className="text-blue-700 font-bold text-sm mb-4">📋 Read-only view. Filter saved plans from the database below.</p>
+                        <div className="vantage-card p-6 bg-blue-50 border border-blue-100">
                             <div className="space-y-3">
                                 <div className="space-y-4">
                                     <div className="space-y-2">
@@ -774,7 +773,7 @@ export default function SeatingAllocator() {
                         </div>
                     )}
 
-                    <div className="lumina-card p-8">
+                    <div className="vantage-card p-8">
                         <h3 className="font-black text-[#001b5e] mb-4">Quick Lookup</h3>
                         <div className="space-y-4">
                             <input
@@ -795,7 +794,7 @@ export default function SeatingAllocator() {
                     {result ? (
                         <div className="space-y-8">
                             {result.rooms.map((room: any, ri: number) => (
-                                <div key={ri} className="lumina-card overflow-hidden transition-all hover:shadow-2xl">
+                                <div key={ri} className="vantage-card overflow-hidden transition-all hover:shadow-2xl">
                                     <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-[#f8fafc]">
                                         <div className="flex items-center gap-3">
                                             <Building2 className="w-5 h-5 text-[#001b5e]" />
@@ -828,7 +827,7 @@ export default function SeatingAllocator() {
                             ))}
                         </div>
                     ) : (role === 'admin' || role === 'coe') && savedAllocations.length > 0 ? (
-                        <div className="lumina-card overflow-hidden">
+                        <div className="vantage-card overflow-hidden">
                             <div className="p-6 bg-[#f8fafc] border-b flex justify-between items-center">
                                 <div>
                                     <h3 className="font-black text-[#001b5e] text-xl">Active Saved Plan</h3>
@@ -890,7 +889,7 @@ export default function SeatingAllocator() {
                         <div className="space-y-4">
                             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest px-4">Saved Plans Archive</h3>
                             {planHistory.map((plan, idx) => (
-                                <div key={idx} className="bg-white lumina-card p-6 flex justify-between items-center group hover:border-[#001b5e] transition-all">
+                                <div key={idx} className="bg-white vantage-card p-6 flex justify-between items-center group hover:border-[#001b5e] transition-all">
                                     <div className="flex gap-6 items-center">
                                         <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center font-black text-[#001b5e]">
                                             {idx + 1}
@@ -934,7 +933,7 @@ export default function SeatingAllocator() {
                     ) : role === 'student' && mySeat ? (
                         <div className="space-y-6">
                             {mySeat.found ? (
-                                <div className="lumina-card overflow-hidden">
+                                <div className="vantage-card overflow-hidden">
                                     <div className="p-6 bg-[#001b5e] text-white">
                                         <h3 className="font-black text-xl">🎯 Your Exam Seat</h3>
                                         <p className="text-blue-300 text-xs font-bold uppercase mt-1">Allocated by Controller of Examinations</p>
@@ -971,7 +970,7 @@ export default function SeatingAllocator() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="lumina-card p-12 flex flex-col items-center justify-center text-center space-y-4 border-dashed border-2">
+                                <div className="vantage-card p-12 flex flex-col items-center justify-center text-center space-y-4 border-dashed border-2">
                                     <Layers className="w-16 h-16 text-slate-100" />
                                     <h3 className="text-xl font-black text-[#001b5e]">Seat Not Allocated Yet</h3>
                                     <p className="text-slate-400 text-sm max-w-xs">{mySeat.message}</p>
@@ -979,7 +978,7 @@ export default function SeatingAllocator() {
                             )}
                         </div>
                     ) : (
-                        <div className="lumina-card p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[500px] border-dashed border-2">
+                        <div className="vantage-card p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[500px] border-dashed border-2">
                             <Layers className="w-16 h-16 text-slate-100" />
                             <div className="max-w-xs">
                                 <h3 className="text-xl font-black text-[#001b5e]">No Active Plan</h3>

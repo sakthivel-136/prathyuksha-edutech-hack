@@ -44,7 +44,7 @@ export default function FraudDetection() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
-                    <div className="lumina-card overflow-hidden">
+                    <div className="vantage-card overflow-hidden">
                         <div className="p-8 border-b border-slate-100 flex justify-between items-center">
                             <h2 className="text-xl font-black text-[#001b5e]">Suspicious Activities</h2>
                             <div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export default function FraudDetection() {
                 </div>
 
                 <div className="space-y-8">
-                    <div className="lumina-card p-8 bg-[#001b5e] text-white border-none shadow-blue-900/20 relative overflow-hidden">
+                    <div className="vantage-card p-8 bg-[#001b5e] text-white border-none shadow-blue-900/20 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16"></div>
                         <ShieldAlert className="w-12 h-12 text-rose-400 mb-6" />
                         <h3 className="text-2xl font-black mb-2">Anomaly Protection</h3>
@@ -112,7 +112,7 @@ export default function FraudDetection() {
                         </div>
                     </div>
 
-                    <div className="lumina-card p-8">
+                    <div className="vantage-card p-8">
                         <h2 className="text-lg font-black text-[#001b5e] mb-6 flex items-center gap-2">
                             <History className="w-5 h-5 text-blue-500" />
                             Recent Audits

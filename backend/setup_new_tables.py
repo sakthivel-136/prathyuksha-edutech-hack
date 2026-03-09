@@ -51,7 +51,7 @@ def setup_database():
         # 2. Insert/Update User Credentials
         users = [
             ('admin@university.edu', 'Super Admin', 'admin', 'Administration', 'admin123'),
-            ('coe@lumina.edu', 'Controller of Examinations', 'coe', 'Administration', 'coe123'),
+            ('coe@vantage.edu', 'Controller of Examinations', 'coe', 'Administration', 'coe123'),
             ('alex.coord@university.edu', 'Alex Organiser', 'club_coordinator', 'CSE', 'admin123'),
             ('student@university.edu', 'John Doe', 'student', 'CSE', 'student123'),
         ]

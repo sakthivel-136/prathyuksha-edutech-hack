@@ -139,7 +139,7 @@ export default function CoursesPage() {
                 </div>
 
                 {curriculum.length === 0 ? (
-                    <div className="lumina-card p-12 text-center text-slate-400 font-bold border-dashed border-2">
+                    <div className="vantage-card p-12 text-center text-slate-400 font-bold border-dashed border-2">
                         No curriculum data available for this selection.
                     </div>
                 ) : (
@@ -161,14 +161,14 @@ export default function CoursesPage() {
             <section className="space-y-6">
                 <h2 className="text-2xl font-black text-[#001b5e]">Your Enrolled Courses</h2>
                 {courses.length === 0 ? (
-                    <div className="lumina-card p-16 flex flex-col items-center justify-center text-center space-y-4">
+                    <div className="vantage-card p-16 flex flex-col items-center justify-center text-center space-y-4">
                         <Inbox className="w-16 h-16 text-slate-200" />
                         <h3 className="text-xl font-black text-[#001b5e]">No Active Enrollments</h3>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {courses.map((course, i) => (
-                            <div key={i} className="lumina-card p-6 space-y-4 hover:shadow-xl transition-all group">
+                            <div key={i} className="vantage-card p-6 space-y-4 hover:shadow-xl transition-all group">
                                 <div className="flex justify-between items-start">
                                     <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#001b5e] font-black text-sm border border-blue-100">
                                         {(course.course_code?.toString() || '??').slice(0, 2)}
@@ -189,10 +189,10 @@ export default function CoursesPage() {
                 <h2 className="text-2xl font-black text-[#001b5e]">Curated Study Path & Recommendations</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {recommendations.length === 0 ? (
-                        <div className="lumina-card p-8 text-center text-slate-400">No recommendations available yet.</div>
+                        <div className="vantage-card p-8 text-center text-slate-400">No recommendations available yet.</div>
                     ) : (
                         recommendations.map((rec, i) => (
-                            <div key={i} className={`lumina-card p-8 border-l-4 ${rec.type === 'course' ? 'border-l-blue-600' : 'border-l-emerald-500'} flex justify-between items-start gap-6`}>
+                            <div key={i} className={`vantage-card p-8 border-l-4 ${rec.type === 'course' ? 'border-l-blue-600' : 'border-l-emerald-500'} flex justify-between items-start gap-6`}>
                                 <div className="space-y-2">
                                     <span className={`text-[10px] font-black uppercase tracking-widest ${rec.type === 'course' ? 'text-blue-600' : 'text-emerald-600'}`}>{rec.type}</span>
                                     <h3 className="text-xl font-black text-[#001b5e]">{rec.title}</h3>
@@ -225,6 +225,10 @@ function COEActionModal({ type, onClose, onSuccess }: { type: 'global' | 'study'
     const [loading, setLoading] = useState(true)
     const [submitting, setSubmitting] = useState(false)
 
+    // Dynamic Year/Sem State
+    const [yearGroup, setYearGroup] = useState(1)
+    const [semester, setSemester] = useState(1)
+
     useEffect(() => {
         const fetchMeta = async () => {
             try {
@@ -250,8 +254,8 @@ function COEActionModal({ type, onClose, onSuccess }: { type: 'global' | 'study'
             department: formData.get('department'),
             credits: parseInt(formData.get('credits') as string),
             faculty: formData.get('faculty'),
-            semester: parseInt(formData.get('semester') as string),
-            year_group: parseInt(formData.get('year_group') as string)
+            semester: semester,
+            year_group: yearGroup
         } : {
             title: formData.get('title'),
             description: formData.get('description'),
@@ -284,7 +288,7 @@ function COEActionModal({ type, onClose, onSuccess }: { type: 'global' | 'study'
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-            <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl space-y-6">
+            <div className="bg-white p-8 rounded-3xl w-full max-w-md shadow-2xl space-y-6 overflow-y-auto max-h-[90vh]">
                 <h2 className="text-2xl font-black text-[#001b5e]">
                     {type === 'global' ? 'Add Global Course' : 'Assign Study Path'}
                 </h2>
@@ -293,17 +297,52 @@ function COEActionModal({ type, onClose, onSuccess }: { type: 'global' | 'study'
                         <>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase">Dept</label>
-                                    <select name="department" className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
-                                        {['CSE', 'ECE', 'MECH', 'IT', 'AI-DS'].map(d => <option key={d} value={d}>{d}</option>)}
+                                    <label className="text-[10px] font-black text-slate-400 uppercase">Year Group</label>
+                                    <select
+                                        name="year_group"
+                                        value={yearGroup}
+                                        onChange={(e) => {
+                                            const y = parseInt(e.target.value);
+                                            setYearGroup(y);
+                                            // Auto-update semester to the first one of that year if current sem is not in range
+                                            const minSem = (y - 1) * 2 + 1;
+                                            const maxSem = y * 2;
+                                            if (semester < minSem || semester > maxSem) {
+                                                setSemester(minSem);
+                                            }
+                                        }}
+                                        className="w-full bg-slate-50 border p-3 rounded-xl font-bold"
+                                    >
+                                        <option value={1}>1st Year</option>
+                                        <option value={2}>2nd Year</option>
+                                        <option value={3}>3rd Year</option>
+                                        <option value={4}>4th Year</option>
                                     </select>
                                 </div>
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black text-slate-400 uppercase">Sem</label>
-                                    <select name="semester" className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
-                                        {[1, 2, 3, 4, 5, 6, 7, 8].map(s => <option key={s} value={s}>Sem {s}</option>)}
+                                    <select
+                                        name="semester"
+                                        value={semester}
+                                        onChange={(e) => {
+                                            const s = parseInt(e.target.value);
+                                            setSemester(s);
+                                            setYearGroup(Math.ceil(s / 2));
+                                        }}
+                                        className="w-full bg-slate-50 border p-3 rounded-xl font-bold"
+                                    >
+                                        {[1, 2, 3, 4, 5, 6, 7, 8]
+                                            .filter(s => Math.ceil(s / 2) === yearGroup)
+                                            .map(s => <option key={s} value={s}>Sem {s}</option>)
+                                        }
                                     </select>
                                 </div>
+                            </div>
+                            <div className="space-y-1">
+                                <label className="text-[10px] font-black text-slate-400 uppercase">Department</label>
+                                <select name="department" className="w-full bg-slate-50 border p-3 rounded-xl font-bold">
+                                    {['CSE', 'ECE', 'MECH', 'IT', 'AI-DS'].map(d => <option key={d} value={d}>{d}</option>)}
+                                </select>
                             </div>
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase">Course Name</label>
@@ -319,7 +358,6 @@ function COEActionModal({ type, onClose, onSuccess }: { type: 'global' | 'study'
                                     <input type="number" name="credits" defaultValue={3} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" />
                                 </div>
                             </div>
-                            <input type="hidden" name="year_group" value={1} />
                             <div className="space-y-1">
                                 <label className="text-[10px] font-black text-slate-400 uppercase">Faculty</label>
                                 <input name="faculty" className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="Dr. Smith" />

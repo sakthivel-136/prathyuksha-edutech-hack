@@ -17,7 +17,7 @@ supabase: Client = create_client(URL, SERVICE_KEY)
 def upsert_users():
     users = [
         {'full_name': 'Super Admin', 'email': 'admin@university.edu', 'role': 'admin', 'department': 'Administration', 'password_hash': 'admin123', 'is_active': True},
-        {'full_name': 'Controller of Examinations', 'email': 'coe@lumina.edu', 'role': 'coe', 'department': 'Administration', 'password_hash': 'coe123', 'is_active': True},
+        {'full_name': 'Controller of Examinations', 'email': 'coe@vantage.edu', 'role': 'coe', 'department': 'Administration', 'password_hash': 'coe123', 'is_active': True},
         {'full_name': 'Alex Organiser', 'email': 'alex.coord@university.edu', 'role': 'club_coordinator', 'department': 'CSE', 'password_hash': 'admin123', 'is_active': True},
         {'full_name': 'John Doe', 'email': 'student@university.edu', 'role': 'student', 'department': 'CSE', 'password_hash': 'student123', 'is_active': True},
     ]

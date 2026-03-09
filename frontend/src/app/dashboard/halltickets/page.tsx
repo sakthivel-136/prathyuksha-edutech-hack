@@ -212,7 +212,7 @@ export default function HallTickets() {
             </div>
 
             {isAdmin && (
-                <div className="lumina-card p-6 border-blue-100 bg-blue-50/30">
+                <div className="vantage-card p-6 border-blue-100 bg-blue-50/30">
                     <h3 className="font-black text-[#001b5e] mb-2 flex items-center gap-2">
                         <Send className="w-5 h-5" /> Admin: Issue Hall Tickets by Scope
                     </h3>
@@ -282,7 +282,7 @@ export default function HallTickets() {
             )}
 
             {isCoe && (
-                <div className="lumina-card p-6 border-emerald-100 bg-emerald-50/30">
+                <div className="vantage-card p-6 border-emerald-100 bg-emerald-50/30">
                     <h3 className="font-black text-emerald-900 mb-2 flex items-center gap-2">
                         <Shield className="w-5 h-5" /> COE approval & Issuance
                     </h3>
@@ -379,7 +379,7 @@ export default function HallTickets() {
             )}
 
             {(isStudent && (!canDownload)) && (
-                <div className="lumina-card p-16 text-center space-y-4">
+                <div className="vantage-card p-16 text-center space-y-4">
                     <Lock className="w-16 h-16 text-slate-200 mx-auto" />
                     <h3 className="text-xl font-black text-[#001b5e]">Hall Tickets Not Available</h3>
                     <p className="text-slate-500 font-bold text-sm">Your department or year has not been published yet.</p>
@@ -387,7 +387,7 @@ export default function HallTickets() {
             )}
 
             {canDownload && (
-                <div className="lumina-card overflow-hidden">
+                <div className="vantage-card overflow-hidden">
                     <div className="bg-[#001b5e] p-8 text-white">
                         <h2 className="text-2xl font-black">LUMINA</h2>
                         <p className="text-blue-300 text-xs font-bold uppercase tracking-widest">Hall Ticket 2025-26</p>

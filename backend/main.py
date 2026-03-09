@@ -13,7 +13,7 @@ from auth import (
 )
 
 logging.basicConfig(level=logging.INFO)
-app = FastAPI(title="Lumina Academy Integrated Backend", version="1.0.0")
+app = FastAPI(title="VantageEdu Integrated Backend", version="1.0.0")
 
 # CORS setup
 app.add_middleware(
@@ -1319,10 +1319,10 @@ async def unpublish_hall_tickets(scope: HallTicketPublishScope = None, current_u
 @app.get("/api/me/profile")
 async def get_full_profile(current_user: dict = Depends(get_current_user)):
     from auth import supabase as sb
-    if current_user["email"] == "coe@lumina.edu":
+    if current_user["email"] == "coe@vantage.edu":
         return {
             "full_name": "Controller of Examinations",
-            "email": "coe@lumina.edu",
+            "email": "coe@vantage.edu",
             "role": "coe",
             "roll_number": "COE-001",
             "department": "Administration"

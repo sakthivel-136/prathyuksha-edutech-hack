@@ -17,6 +17,7 @@ export default function ExamsPage() {
         course_name: '',
         exam_date: '',
         exam_time: '',
+        room: '',
         exam_type: 'End Sem',
         department: 'CSE',
         academic_year: '2025-26',
@@ -71,7 +72,7 @@ export default function ExamsPage() {
             const res = await fetch(`${API_BASE}/api/exams`, {
                 method: 'POST',
                 headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...newExam, room: '' })
+                body: JSON.stringify({ ...newExam, room: newExam.room || 'Pending Allocation' })
             })
             const result = await res.json();
             if (res.ok) {
@@ -82,6 +83,7 @@ export default function ExamsPage() {
                     course_name: '',
                     exam_date: '',
                     exam_time: '',
+                    room: '',
                     exam_type: 'End Sem',
                     department: 'CSE',
                     academic_year: '2025-26',
@@ -110,9 +112,12 @@ export default function ExamsPage() {
                     course_name: editingExam.course_name,
                     exam_date: editingExam.exam_date,
                     exam_time: editingExam.exam_time,
-                    room: editingExam.room || '',
+                    room: editingExam.room || 'Pending Allocation',
                     exam_type: editingExam.exam_type,
-                    department: editingExam.department
+                    department: editingExam.department,
+                    year_of_study: editingExam.year_of_study,
+                    semester: editingExam.semester,
+                    academic_year: editingExam.academic_year
                 })
             })
             if (res.ok) {
@@ -282,7 +287,9 @@ export default function ExamsPage() {
                                                 {exam.course_name}
                                                 {isArrear && <span className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest">Arrear</span>}
                                             </h4>
-                                            <p className="text-xs font-bold text-slate-400 mt-1">{exam.course_code} • {exam.department} • {exam.exam_type}</p>
+                                            <p className="text-xs font-bold text-slate-400 mt-1">
+                                                {exam.course_code} • {exam.department} • {exam.exam_type} • Year {exam.year_of_study} (Sem {exam.semester})
+                                            </p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-8">
@@ -457,6 +464,48 @@ export default function ExamsPage() {
                                 <div className="space-y-1">
                                     <label className="text-[10px] font-black uppercase text-slate-400">Time</label>
                                     <input required type="text" value={editingExam.exam_time} onChange={e => setEditingExam({ ...editingExam, exam_time: e.target.value })} className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="09:00 AM" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Year</label>
+                                    <select
+                                        value={editingExam.year_of_study}
+                                        onChange={e => {
+                                            const y = parseInt(e.target.value);
+                                            const minSem = (y - 1) * 2 + 1;
+                                            const maxSem = y * 2;
+                                            let nextSem = editingExam.semester;
+                                            if (nextSem < minSem || nextSem > maxSem) {
+                                                nextSem = minSem;
+                                            }
+                                            setEditingExam({ ...editingExam, year_of_study: y, semester: nextSem });
+                                        }}
+                                        className="w-full bg-slate-50 border p-3 rounded-xl font-bold"
+                                    >
+                                        <option value={1}>1st Year</option>
+                                        <option value={2}>2nd Year</option>
+                                        <option value={3}>3rd Year</option>
+                                        <option value={4}>4th Year</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] font-black uppercase text-slate-400">Semester</label>
+                                    <select
+                                        value={editingExam.semester}
+                                        onChange={e => {
+                                            const s = parseInt(e.target.value);
+                                            const y = Math.ceil(s / 2);
+                                            setEditingExam({ ...editingExam, semester: s, year_of_study: y });
+                                        }}
+                                        className="w-full bg-slate-50 border p-3 rounded-xl font-bold"
+                                    >
+                                        {[1, 2, 3, 4, 5, 6, 7, 8]
+                                            .filter(s => Math.ceil(s / 2) === editingExam.year_of_study)
+                                            .map(s => <option key={s} value={s}>Sem {s}</option>)
+                                        }
+                                    </select>
                                 </div>
                             </div>
 

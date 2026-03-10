@@ -19,7 +19,7 @@ export default function StudyRecommender() {
 
     const recommendations = [
         { title: 'Intro to XGBoost Paradigms', type: 'Video', duration: '45m', rating: 4.8, relevance: '95%', author: 'Prof. Harrison' },
-        { title: 'Advanced Gradient Boosting', type: 'PDF', pages: '12', rating: 4.9, relevance: '92%', author: 'Lumina Research' },
+        { title: 'Advanced Gradient Boosting', type: 'PDF', pages: '12', rating: 4.9, relevance: '92%', author: 'VANTAGE-EDU Research' },
         { title: 'Hyperparameter Tuning Basics', type: 'Interactive', duration: '20m', rating: 4.7, relevance: '88%', author: 'OpenSource ML' },
         { title: 'Feature Engineering Mastery', type: 'Video', duration: '1h 12m', rating: 4.6, relevance: '85%', author: 'Data Academy' },
     ]
@@ -55,7 +55,7 @@ export default function StudyRecommender() {
                             <input
                                 value={query}
                                 onChange={(e) => setQuery(e.target.value)}
-                                className="w-full bg-white/10 border border-white/20 py-5 pl-14 pr-6 rounded-2xl outline-none focus:bg-white/20 transition-all font-bold placeholder:text-white/30"
+                                className="w-full bg-white border border-slate-200 py-5 pl-14 pr-6 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold text-slate-900 placeholder:text-slate-400"
                                 placeholder="What subject are we mastering today?"
                             />
                         </div>

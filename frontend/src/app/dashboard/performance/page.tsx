@@ -50,10 +50,23 @@ export default function PerformancePredictor() {
         setLoading(true)
         try {
             const { API_BASE, getAuthHeaders } = await import('@/lib/api')
+
+            // Format features for backend (numbers for scores/time)
+            const payload = {
+                features: {
+                    ...features,
+                    g1: parseFloat(features.g1),
+                    g2: parseFloat(features.g2),
+                    studyTime: parseInt(features.studyTime),
+                    pastFailures: parseInt(features.pastFailures),
+                    absences: parseInt(features.absences)
+                }
+            }
+
             const res = await fetch(`${API_BASE}/api/predict_performance`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                body: JSON.stringify({ features })
+                body: JSON.stringify(payload)
             })
             if (res.ok) {
                 const data = await res.json()

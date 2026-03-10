@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { BookOpen, Clock, Inbox, Plus } from 'lucide-react'
+import { BookOpen, Clock, Inbox, Plus, Trash2 } from 'lucide-react'
 import { API_BASE, getAuthHeaders } from '@/lib/api'
 
 export default function CoursesPage() {
@@ -10,9 +10,11 @@ export default function CoursesPage() {
     const [curriculum, setCurriculum] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [role, setRole] = useState('')
+    const [userProfile, setUserProfile] = useState<any>(null)
     const [showAddModal, setShowAddModal] = useState(false)
     const [submitting, setSubmitting] = useState(false)
     const [modalType, setModalType] = useState<'global' | 'study'>('global')
+    const isAdmin = role === 'admin' || role === 'coe'
     const [curriculumFilter, setCurriculumFilter] = useState({
         dept: 'CSE',
         year: '1',
@@ -45,6 +47,9 @@ export default function CoursesPage() {
 
             const recRes = await fetch(`${API_BASE}/api/recommendations`, { headers: getAuthHeaders() })
             if (recRes.ok) setRecommendations(await recRes.json())
+
+            const profileRes = await fetch(`${API_BASE}/api/profile`, { headers: getAuthHeaders() })
+            if (profileRes.ok) setUserProfile(await profileRes.json())
         } catch (e) { console.error(e) }
         setLoading(false)
     }
@@ -89,6 +94,17 @@ export default function CoursesPage() {
                 <div className="space-y-1">
                     <p className="text-slate-500 font-bold uppercase tracking-widest text-xs">Academic Portal</p>
                     <h1 className="text-4xl font-black text-[#001b5e]">Courses & Recommendations</h1>
+                    {userProfile?.student_rating && (
+                        <div className="flex items-center gap-2 mt-2 bg-amber-50 border border-amber-100 px-3 py-1 rounded-full w-fit">
+                            <span className="text-amber-600 font-black text-[10px] uppercase">My Student Rating:</span>
+                            <div className="flex gap-0.5">
+                                {[...Array(5)].map((_, i) => (
+                                    <span key={i} className={`text-xs ${i < Math.floor(userProfile.student_rating) ? 'text-amber-500' : 'text-amber-200'}`}>★</span>
+                                ))}
+                            </div>
+                            <span className="text-amber-600 font-bold text-[10px]">{userProfile.student_rating.toFixed(1)}/5.0</span>
+                        </div>
+                    )}
                 </div>
                 <div className="flex gap-3">
                     {(role === 'admin' || role === 'coe') && (
@@ -148,6 +164,23 @@ export default function CoursesPage() {
                             <div key={i} className="bg-white border border-slate-100 p-5 rounded-2xl hover:shadow-lg transition-all">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{c.course_code}</p>
                                 <h4 className="font-bold text-[#001b5e] mt-1">{c.course_name}</h4>
+                                <div className="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <span className="text-[10px] font-black text-slate-300 uppercase">{c.faculty || 'Unassigned'}</span>
+                                    {isAdmin && (
+                                        <button
+                                            onClick={async () => {
+                                                if (confirm('Delete this course?')) {
+                                                    const { API_BASE, getAuthHeaders } = await import('@/lib/api')
+                                                    await fetch(`${API_BASE}/api/admin/courses/${c.id}`, { method: 'DELETE', headers: getAuthHeaders() })
+                                                    fetchCurriculum()
+                                                }
+                                            }}
+                                            className="text-rose-400 hover:text-rose-600 p-2 hover:bg-rose-50 rounded-lg transition-all"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    )}
+                                </div>
                                 <div className="flex justify-between items-center mt-4 pt-3 border-t border-slate-50">
                                     <span className="text-[10px] font-bold text-slate-400">{c.department}</span>
                                     <span className="text-[10px] font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-lg">{c.credits} Credits</span>
@@ -168,17 +201,38 @@ export default function CoursesPage() {
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {courses.map((course, i) => (
-                            <div key={i} className="vantage-card p-6 space-y-4 hover:shadow-xl transition-all group">
+                            <div key={i} className="vantage-card p-6 space-y-4 hover:shadow-xl transition-all group relative">
                                 <div className="flex justify-between items-start">
                                     <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-[#001b5e] font-black text-sm border border-blue-100">
                                         {(course.course_code?.toString() || '??').slice(0, 2)}
                                     </div>
-                                    <span className="text-[10px] font-black text-blue-500 bg-blue-50 px-3 py-1 rounded-full">{course.credits || 0} Credits</span>
+                                    <div className="flex flex-col items-end gap-2">
+                                        <span className="text-[10px] font-black text-blue-500 bg-blue-50 px-3 py-1 rounded-full">{course.credits || 0} Credits</span>
+                                        {course.is_global === false && (
+                                            <span className="text-[10px] font-black text-emerald-500 bg-emerald-50 px-3 py-1 rounded-full">Personalized</span>
+                                        )}
+                                    </div>
                                 </div>
-                                <div>
+                                <div className="space-y-1">
                                     <h3 className="font-black text-[#001b5e] leading-tight">{course.course_name}</h3>
                                     <p className="text-xs font-bold text-slate-400 mt-1">{course.course_code} • {course.faculty || 'Dept Faculty'}</p>
                                 </div>
+                                {course.course_link && (
+                                    <div className="pt-4 border-t border-slate-50 flex items-center justify-between">
+                                        <div className="flex items-center gap-2 text-blue-600">
+                                            <BookOpen className="w-4 h-4" />
+                                            <span className="text-[10px] font-black uppercase">Direct Link Available</span>
+                                        </div>
+                                        <a
+                                            href={course.course_link}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="bg-[#001b5e] text-white text-[10px] font-black px-4 py-2 rounded-xl shadow-lg hover:scale-105 transition-all"
+                                        >
+                                            Go to Course
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -381,8 +435,8 @@ function COEActionModal({ type, onClose, onSuccess }: { type: 'global' | 'study'
                                 <textarea required name="description" className="w-full bg-slate-50 border p-3 rounded-xl font-bold h-24" />
                             </div>
                             <div className="space-y-1">
-                                <label className="text-[10px] font-black text-slate-400 uppercase">Link</label>
-                                <input name="link" className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="https://..." />
+                                <label className="text-[10px] font-black text-slate-400 uppercase">Resource Link</label>
+                                <input name="link" className="w-full bg-slate-50 border p-3 rounded-xl font-bold" placeholder="e.g. https://www.w3schools.com/js/" />
                             </div>
                         </>
                     )}

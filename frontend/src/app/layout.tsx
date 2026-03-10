@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "VantageEdu",
-  description: "Premium Educational Technology Platform",
+  title: "VANTAGE-EDU | Premium Education Portal",
+  description: "Next-generation Academic & Examination Management System",
 };
 
 export default function RootLayout({

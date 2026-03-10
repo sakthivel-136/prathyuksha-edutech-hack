@@ -33,6 +33,7 @@ export default function Sidebar() {
         { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator', 'coe'] },
         { name: 'My Courses', icon: BookOpen, path: '/dashboard/courses', allowed: ['student', 'admin', 'coe'] },
         { name: 'Exam Schedule', icon: CalendarDays, path: '/dashboard/exams', allowed: ['student', 'admin', 'seating_manager', 'coe'] },
+        { name: 'Results', icon: List, path: '/dashboard/results', allowed: ['student', 'admin', 'coe'] },
         { name: 'Hall Tickets', icon: Ticket, path: '/dashboard/halltickets', allowed: ['student', 'admin', 'coe'] },
         { name: 'Academic Calendar', icon: CalendarDays, path: '/dashboard/calendar', allowed: ['student', 'admin', 'seating_manager', 'club_coordinator', 'coe'] },
     ]
@@ -65,9 +66,9 @@ export default function Sidebar() {
             <div className="p-4 flex-1 flex flex-col">
                 <div className="flex items-center gap-4 mb-8">
                     <div className="w-12 h-12 overflow-hidden rounded-2xl flex items-center justify-center">
-                        <img src="/logo.png" alt="Lumina" className="w-full h-full object-cover border-2 border-white/20 shadow-xl" />
+                        <img src="/logo.png" alt="VANTAGE-EDU" className="w-full h-full object-cover border-2 border-white/20 shadow-xl" />
                     </div>
-                    <span className="text-3xl font-black text-white tracking-widest uppercase">VantageEdu</span>
+                    <span className="text-3xl font-black text-white tracking-widest uppercase">VANTAGE-EDU</span>
                 </div>
 
                 <div className="space-y-1">
@@ -105,9 +106,9 @@ export default function Sidebar() {
                 </div>
 
                 <div className="mt-auto pb-4 pt-6 border-t border-white/5">
-                    <div className="px-4 mb-4">
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Role</p>
-                        <p className="text-sm font-bold text-blue-400 capitalize">{role.replace('_', ' ')}</p>
+                    <div className="flex flex-col px-4 mb-4">
+                        <span className="text-xl font-black tracking-tighter text-white">VANTAGE-EDU</span>
+                        <span className="text-[10px] font-bold text-slate-400 -mt-1 uppercase tracking-widest">Management v1.0</span>
                     </div>
                     <button
                         onClick={handleLogout}

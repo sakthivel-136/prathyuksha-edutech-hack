@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import {
     Download,
     Play,
@@ -15,11 +16,12 @@ import {
     ShieldAlert,
     Search,
     FileDown,
-    Trash2
+    Trash2,
+    Shield
 } from 'lucide-react'
 
 export default function SeatingAllocator() {
-    const [role, setRole] = useState('')
+    const [role, setRole] = useState<string>('')
     const [examMode, setExamMode] = useState<'internal' | 'semester'>('internal')
     const [config, setConfig] = useState({
         roomCapacity: 30,
@@ -28,8 +30,9 @@ export default function SeatingAllocator() {
         rooms: 3,
         membersPerClass: 30
     })
-    const [selectedYears, setSelectedYears] = useState<number[]>([1, 3])
-    const [selectedDepts, setSelectedDepts] = useState<string[]>(['CSE', 'ECE'])
+    const [selectedYears, setSelectedYears] = useState<number[]>([])
+    const [selectedDepts, setSelectedDepts] = useState<string[]>([])
+    const [selectedSems, setSelectedSems] = useState<number[]>([])
     const [examDate, setExamDate] = useState(new Date().toISOString().split('T')[0])
     const [conditions, setConditions] = useState({
         ascendingOrder: true,
@@ -47,6 +50,26 @@ export default function SeatingAllocator() {
     const [searchYear, setSearchYear] = useState('')
     const [searchResults, setSearchResults] = useState<any[]>([])
     const [loadingSearch, setLoadingSearch] = useState(false)
+    const [allPlans, setAllPlans] = useState<any[]>([]) // Store multiple plans
+    const [selectedPlanIndex, setSelectedPlanIndex] = useState(0)
+    const handleClearAll = async () => {
+        if (!confirm('🚨 CRITICAL: This will permanently DELETE ALL seating plans across ALL rooms and dates. Are you sure?')) return
+        try {
+            const { API_BASE, getAuthHeaders } = await import('@/lib/api')
+            const res = await fetch(`${API_BASE}/api/admin/seating/clear`, {
+                method: 'POST',
+                headers: getAuthHeaders()
+            })
+            if (res.ok) {
+                alert('All plans cleared successfully.')
+                setResult(null)
+                setSavedAllocations([])
+                setPlanHistory([])
+            }
+        } catch (e) {
+            alert('Failed to clear plans.')
+        }
+    }
     // Admin filter state
     const [filterDept, setFilterDept] = useState('CSE')
     const [filterYear, setFilterYear] = useState('')
@@ -54,22 +77,94 @@ export default function SeatingAllocator() {
     const [loadingPlan, setLoadingPlan] = useState(false)
     // Student seat
     const [mySeat, setMySeat] = useState<any>(null)
+    const [suggestedCount, setSuggestedCount] = useState(0)
+    const [exams, setExams] = useState<any[]>([])
+    const [selectedExamIds, setSelectedExamIds] = useState<string[]>([])
+    const searchParams = useSearchParams()
 
     useEffect(() => {
         const r = localStorage.getItem('userRole') || 'student'
         setRole(r)
-        const savedResult = sessionStorage.getItem('lumina_seating_result')
+
+        const examIdFromUrl = searchParams.get('exam_id')
+        if (examIdFromUrl) {
+            setSelectedExamIds([examIdFromUrl])
+        }
+
+        const savedResult = sessionStorage.getItem('vantage_seating_result')
         if (savedResult) {
             try { setResult(JSON.parse(savedResult)) } catch (e) { }
         }
-        // Auto-fetch for admin or coe
-        if (r === 'admin' || r === 'coe') {
-            fetchSavedPlan('CSE', '')
-            fetchPlanHistory()
+    }, [searchParams])
+
+    useEffect(() => {
+        if (selectedExamIds.length > 0 && exams.length > 0) {
+            const selectedExams = exams.filter(e => selectedExamIds.includes(e.id))
+            if (selectedExams.length > 0) {
+                const depts = Array.from(new Set(selectedExams.map(e => e.department).filter(Boolean)))
+                const years = Array.from(new Set(selectedExams.map(e => e.year_of_study?.toString()).filter(Boolean)))
+
+                if (depts.length > 0) {
+                    setSelectedDepts(depts)
+                    setFilterDept(depts[0])
+                }
+                if (years.length > 0) {
+                    setSelectedYears(years.map(y => parseInt(y)))
+                    setFilterYear(years[0])
+                }
+
+                // If only one unique scope, fetch saved plan
+                if (depts.length === 1 && years.length === 1) {
+                    fetchSavedPlan(depts[0], years[0])
+                }
+
+                // [AUTO-SUGGEST ROOMS]
+                fetchStudentCount(selectedExamIds)
+            }
         }
-        // Fetch student seat
-        if (r === 'student') fetchMySeat()
-    }, [])
+    }, [selectedExamIds, exams])
+
+    const fetchStudentCount = async (ids: string[]) => {
+        try {
+            const { API_BASE, getAuthHeaders } = await import('@/lib/api')
+            const res = await fetch(`${API_BASE}/api/seating/students?exam_ids=${ids.join(',')}`, {
+                headers: getAuthHeaders()
+            })
+            if (res.ok) {
+                const students = await res.json()
+                const count = Array.isArray(students) ? students.length : 0
+                setSuggestedCount(count)
+
+                // Automatically update config based on 30 per room
+                const neededRooms = Math.ceil(count / 30) || 1
+                setConfig(prev => ({
+                    ...prev,
+                    rooms: neededRooms,
+                    roomCapacity: 30, // Fixed as per request
+                    membersPerClass: 30,
+                    rows: 5,
+                    cols: 6 // 5x6 = 30
+                }))
+            }
+        } catch (e) { console.error(e) }
+    }
+
+    useEffect(() => {
+        if (role === 'admin' || role === 'coe') {
+            fetchPlanHistory()
+            fetchExams()
+        }
+        if (role === 'student') fetchMySeat()
+    }, [role])
+
+
+    const fetchExams = async () => {
+        try {
+            const { API_BASE, getAuthHeaders } = await import('@/lib/api')
+            const res = await fetch(`${API_BASE}/api/exams`, { headers: getAuthHeaders() })
+            if (res.ok) setExams(await res.json())
+        } catch (e) { console.error(e) }
+    }
 
     const fetchPlanHistory = async () => {
         setLoadingHistory(true)
@@ -91,25 +186,48 @@ export default function SeatingAllocator() {
             if (mode) params.append('exam_mode', mode)
             const res = await fetch(`${API_BASE}/api/seating/search?${params.toString()}`, { headers: getAuthHeaders() })
             const data = await res.json()
-            if (res.ok) {
-                // Group by room for the same result structure
-                const roomsMap: any = {}
+            if (res.ok && data.length > 0) {
+                // Group by [exam_id + exam_date]
+                const groups: any = {}
                 data.forEach((a: any) => {
-                    if (!roomsMap[a.room_name]) {
-                        roomsMap[a.room_name] = { name: a.room_name, seats: [] }
+                    const key = `${a.exam_id}_${a.exam_date}`
+                    if (!groups[key]) {
+                        groups[key] = {
+                            exam_id: a.exam_id,
+                            exam_date: a.exam_date,
+                            exam_mode: a.exam_mode || 'Assessment',
+                            department: a.department,
+                            year_group: a.year_group,
+                            rooms: {}
+                        }
                     }
-                    roomsMap[a.room_name].seats.push(a)
+                    if (!groups[key].rooms[a.room_name]) {
+                        groups[key].rooms[a.room_name] = { name: a.room_name, seats: [] }
+                    }
+                    groups[key].rooms[a.room_name].seats.push({
+                        ...a,
+                        id: a.seat_number,
+                        student: a.user_profiles?.roll_number || a.student_id || 'N/A',
+                        dept: a.user_profiles?.department || a.department
+                    })
                 })
-                setResult({
-                    department: dept,
-                    yearGroup: year,
-                    examMode: mode || data[0]?.exam_mode || 'Assessment',
-                    examDate: data[0]?.exam_date || 'TBD',
-                    rooms: Object.values(roomsMap)
-                })
+
+                const planList = Object.values(groups).map((g: any) => ({
+                    ...g,
+                    rooms: Object.values(g.rooms)
+                }))
+
+                setAllPlans(planList)
+                setSelectedPlanIndex(0)
+                setResult(planList[0])
+            } else {
+                setAllPlans([])
+                setResult(null)
             }
         } catch (e) {
             console.error(e)
+            setAllPlans([])
+            setResult(null)
         } finally {
             setLoadingPlan(false)
         }
@@ -212,72 +330,77 @@ export default function SeatingAllocator() {
         return <UserSearchPortal />
     }
 
-    const handleAllocate = () => {
+    const handleAllocate = async () => {
         if (role !== 'coe') {
             alert("Only Controller of Examinations (COE) can generate and issue seating plans.");
             return;
         }
+        if (selectedExamIds.length === 0) {
+            alert("Please select at least one exam first.");
+            return;
+        }
+
         setAllocating(true)
-        setTimeout(() => {
+        try {
+            const { API_BASE, getAuthHeaders } = await import('@/lib/api')
+            const res = await fetch(`${API_BASE}/api/seating/students?exam_ids=${selectedExamIds.join(',')}`, {
+                headers: getAuthHeaders()
+            })
+
+            if (!res.ok) {
+                const error = await res.json()
+                throw new Error(error.detail || "Failed to fetch student data")
+            }
+
+            const students = await res.json()
+
+            if (!Array.isArray(students) || students.length === 0) {
+                alert("No students assigned to selected exams.")
+                setAllocating(false)
+                return
+            }
+
+            // Distribution Logic
             const realisticRoomNames = ['Hall A1', 'Hall B2', 'Hall C3', 'Lecture Hall 10', 'Main Seminar Hall'];
+            let studentIndex = 0;
+
+            // Sort students based on conditions
+            if (conditions.randomized) {
+                students.sort(() => Math.random() - 0.5)
+            } else if (conditions.ascendingOrder) {
+                students.sort((a: any, b: any) => a.roll_number.localeCompare(b.roll_number))
+            }
+            if (conditions.separateByYear && examMode === 'internal') {
+                students.sort((a: any, b: any) => a.year_of_study - b.year_of_study)
+            }
+
             const rooms = Array.from({ length: config.rooms }, (_, ri) => {
                 const roomSeats = []
-                let seatCounter = 0
-
-                // Pre-generate a pool of students based on config to apply conditions
-                let studentPool = []
-                for (let i = 0; i < config.roomCapacity; i++) {
-                    let year = selectedYears[0]
-                    if (examMode === 'internal' && selectedYears.length > 1) {
-                        year = selectedYears[i % selectedYears.length]
-                    } else if (examMode === 'semester') {
-                        year = selectedYears[0]
-                    }
-                    const dept = selectedDepts[i % selectedDepts.length]
-                    studentPool.push({
-                        student: `202${year}${dept.substring(0, 2)}${Math.floor(Math.random() * 900) + 100}`,
-                        dept,
-                        year
-                    })
-                }
-
-                if (conditions.randomized) {
-                    studentPool.sort(() => Math.random() - 0.5)
-                } else if (conditions.ascendingOrder) {
-                    studentPool.sort((a, b) => a.student.localeCompare(b.student))
-                }
-                if (conditions.separateByYear && examMode === 'internal') {
-                    studentPool.sort((a, b) => a.year - b.year)
-                }
+                const roomName = realisticRoomNames[ri % realisticRoomNames.length]
 
                 for (let r = 0; r < config.rows; r++) {
                     for (let c = 0; c < config.cols; c++) {
-                        if (seatCounter >= config.roomCapacity) break
+                        if (studentIndex >= students.length) break
                         const rowChar = String.fromCharCode(65 + r)
-
-                        // Internal Mode: Alternate years if possible
-                        let year = selectedYears[0]
-                        if (examMode === 'internal' && selectedYears.length > 1) {
-                            year = selectedYears[seatCounter % selectedYears.length]
-                        } else if (examMode === 'semester') {
-                            year = selectedYears[0] // Simple for now
-                        }
-
-                        const dept = selectedDepts[seatCounter % selectedDepts.length]
+                        const student = students[studentIndex++]
 
                         roomSeats.push({
                             id: `${rowChar}${c + 1}`,
-                            student: `202${year}${dept.substring(0, 2)}${Math.floor(Math.random() * 900) + 100}`,
-                            dept: dept,
-                            year: year,
+                            student_id: student.id,
+                            exam_id: student.exam_id,
+                            roll_number: student.roll_number,
+                            student_name: student.full_name,
+                            dept: student.department || 'N/A',
+                            year: student.year_of_study,
                             row_idx: r,
                             col_idx: c
                         })
-                        seatCounter++
                     }
+                    if (studentIndex >= students.length) break
                 }
+
                 return {
-                    name: realisticRoomNames[ri % realisticRoomNames.length],
+                    name: roomName,
                     capacity: config.roomCapacity,
                     secureHash: Math.random().toString(36).substring(2, 10).toUpperCase(),
                     seats: roomSeats
@@ -289,19 +412,24 @@ export default function SeatingAllocator() {
                 examDate,
                 department: selectedDepts.join(', '),
                 yearGroup: selectedYears.join(' & '),
+                exam_ids: selectedExamIds,
                 rooms,
                 stats: {
-                    totalStudents: config.membersPerClass * config.rooms,
-                    totalRooms: config.rooms,
+                    totalStudents: students.length,
+                    totalRooms: rooms.length,
                     constraintsSatisfied: '100%',
-                    pattern: examMode === 'internal' ? 'Multi-Year Alternating' : 'Sequential'
+                    pattern: examMode === 'internal' ? 'Multi-Course Combined' : 'Sequential Combined'
                 }
             }
 
             setResult(finalResult)
-            sessionStorage.setItem('lumina_seating_result', JSON.stringify(finalResult))
+            sessionStorage.setItem('vantage_seating_result', JSON.stringify(finalResult))
+        } catch (e) {
+            console.error(e)
+            alert("Failed to fetch students for seating.")
+        } finally {
             setAllocating(false)
-        }, 1500)
+        }
     }
 
     const handleDeletePlan = async (batchParams?: { dept?: string, year?: string, mode?: string }) => {
@@ -332,7 +460,7 @@ export default function SeatingAllocator() {
             if (res.ok) {
                 alert('Plan successfully deleted and removed from global visibility.')
                 setResult(null)
-                sessionStorage.removeItem('lumina_seating_result')
+                sessionStorage.removeItem('vantage_seating_result')
                 setSavedAllocations([]) // This line was in the original, but the instruction's code edit implies its removal. Keeping it for now as the instruction was ambiguous on this specific line.
                 // Reset active filters to prevent stale view
                 setFilterDept('')
@@ -389,8 +517,7 @@ export default function SeatingAllocator() {
                 </div>
                 <div class="header">
                     <div>
-                        <h1 style="color:#001b5e;margin:0;font-size:28px;">LUMINA ACADEMY</h1>
-                        <p style="margin:5px 0;font-weight:bold;color:#64748b;">OFFICIAL SEATING ALLOCATION REPORT</p>
+                        <h1 style="color:#001b5e;margin:0;font-size:28px;">VANTAGE-EDU</h1>                        <p style="margin:5px 0;font-weight:bold;color:#64748b;">OFFICIAL SEATING ALLOCATION REPORT</p>
                     </div>
                     <div style="text-align:right">
                         <p style="margin:0;font-size:12px;font-weight:bold;">Report ID: #${Math.random().toString(36).substring(7).toUpperCase()}</p>
@@ -434,10 +561,14 @@ export default function SeatingAllocator() {
         try {
             const { API_BASE, getAuthHeaders } = await import('@/lib/api')
             const allSeats = result.rooms.flatMap((r: any) => r.seats.map((s: any) => ({
+                student_id: s.student_id,
                 room_name: r.name,
                 seat_number: s.id,
                 row_idx: s.row_idx,
-                col_idx: s.col_idx
+                col_idx: s.col_idx,
+                department: s.dept,
+                year_group: s.year,
+                exam_id: s.exam_id || result.exam_ids[0]
             })))
 
             const payload = {
@@ -445,6 +576,7 @@ export default function SeatingAllocator() {
                 exam_date: result.examDate,
                 department: result.department,
                 year_group: result.yearGroup,
+                exam_ids: result.exam_ids,
                 allocations: allSeats
             }
 
@@ -486,7 +618,7 @@ export default function SeatingAllocator() {
             </style>
             </head><body>
                 <div class="header">
-                    <h2 style="color:#001b5e;margin:0 0 10px 0;">LUMINA SEATING PLAN</h2>
+                    <h2 style="color:#001b5e;margin:0 0 10px 0;">VANTAGE-EDU SEATING PLAN</h2>
                     <p style="margin:5px 0;"><strong>Mode:</strong> <span style="text-transform: capitalize">${result.examMode}</span> Exam | <strong>Date:</strong> ${result.examDate}</p>
                     <p style="margin:5px 0;"><strong>Departments:</strong> ${result.department} | <strong>Years:</strong> ${result.yearGroup}</p>
                 </div>
@@ -537,7 +669,7 @@ export default function SeatingAllocator() {
         </head>
         <body>
             <div class="container">
-                <h1>LUMINA OFFICIAL SEATING PLAN</h1>
+                <h1>VANTAGE-EDU OFFICIAL SEATING PLAN</h1>
                 <div class="meta">
                     <div><strong>EXAM MODE:</strong> <span style="text-transform: capitalize">${result.examMode}</span></div>
                     <div><strong>DATE:</strong> ${result.examDate}</div>
@@ -570,7 +702,7 @@ export default function SeatingAllocator() {
                 `).join('')}
                 
                 <div style="text-align: center; color: #94a3b8; font-size: 12px; margin-top: 40px; padding-top: 20px; border-top: 1px dashed #cbd5e1;">
-                    Generated by Lumina Accelerator Engine on ${new Date().toLocaleString()}
+                    Generated by VANTAGE-EDU Accelerator Engine on ${new Date().toLocaleString()}
                 </div>
             </div>
         </body>
@@ -580,7 +712,7 @@ export default function SeatingAllocator() {
         const url = URL.createObjectURL(blob)
         const link = document.createElement("a")
         link.setAttribute("href", url)
-        link.setAttribute("download", `Lumina_Seating_${result.examDate}_${result.examMode}.html`)
+        link.setAttribute("download", `Vantage-EDU_Seating_${result.examDate}_${result.examMode}.html`)
         document.body.appendChild(link)
         link.click()
         document.body.removeChild(link)
@@ -620,178 +752,309 @@ export default function SeatingAllocator() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-                <div className="space-y-8">
-                    {role === 'coe' ? (
+            <div className={`grid grid-cols-1 ${role === 'event_coordinator' ? 'lg:grid-cols-1' : 'lg:grid-cols-4'} gap-8`}>
+                {role !== 'event_coordinator' && (
+                    <div className="space-y-8">
+                        {role === 'coe' ? (
+                            <div className="vantage-card p-8">
+                                <h2 className="text-lg font-black text-[#001b5e] mb-6 flex items-center gap-2">
+                                    <Settings2 className="w-5 h-5 text-blue-500" />
+                                    Optimization Engine
+                                </h2>
+
+                                {/* Mode Toggle */}
+                                <div className="flex p-1 bg-slate-100 rounded-2xl mb-8">
+                                    <button
+                                        onClick={() => setExamMode('internal')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${examMode === 'internal' ? 'bg-[#001b5e] text-white shadow-lg' : 'text-slate-500 hover:bg-slate-200'}`}
+                                    >
+                                        Internal Exam
+                                    </button>
+                                    <button
+                                        onClick={() => setExamMode('semester')}
+                                        className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${examMode === 'semester' ? 'bg-[#001b5e] text-white shadow-lg' : 'text-slate-500 hover:bg-slate-200'}`}
+                                    >
+                                        Semester Exam
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    {/* STEP 1: DEPT selection */}
+                                    <div className="space-y-4 p-4 bg-slate-50/50 rounded-2xl border border-slate-100">
+                                        <div className="space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Step 1: Choose Department</label>
+                                                {selectedDepts.length > 0 && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {['CSE', 'ECE', 'MECH', 'IT', 'AI-DS'].map(d => (
+                                                    <button
+                                                        key={d}
+                                                        onClick={() => setSelectedDepts(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])}
+                                                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all border ${selectedDepts.includes(d) ? 'bg-[#001b5e] text-white border-[#001b5e] shadow-lg' : 'bg-white text-slate-400 border-slate-200 hover:border-blue-200'}`}
+                                                    >
+                                                        {d}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {/* STEP 2: YEAR selection (only if dept selected) */}
+                                        {selectedDepts.length > 0 && (
+                                            <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Step 2: Select Years</label>
+                                                    {selectedYears.length > 0 && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                                                </div>
+                                                <div className="flex gap-2">
+                                                    {[1, 2, 3, 4].map(y => (
+                                                        <button
+                                                            key={y}
+                                                            onClick={() => setSelectedYears(prev => prev.includes(y) ? prev.filter(x => x !== y) : [...prev, y])}
+                                                            className={`flex-1 py-2 rounded-xl text-xs font-black transition-all border ${selectedYears.includes(y) ? 'bg-[#001b5e] text-white border-[#001b5e] shadow-lg' : 'bg-white text-slate-400 border-slate-200 hover:border-blue-200'}`}
+                                                        >
+                                                            {y}{y === 1 ? 'st' : y === 2 ? 'nd' : y === 3 ? 'rd' : 'th'} Yr
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* STEP 3: SEMESTER selection (only if year selected) */}
+                                        {selectedYears.length > 0 && (
+                                            <div className="space-y-2 animate-in slide-in-from-top-2 duration-300">
+                                                <div className="flex items-center justify-between">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Step 3: Choose Semester</label>
+                                                    {selectedSems.length > 0 && <CheckCircle2 className="w-3 h-3 text-emerald-500" />}
+                                                </div>
+                                                <div className="grid grid-cols-4 gap-2">
+                                                    {[1, 2, 3, 4, 5, 6, 7, 8].map(s => (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => setSelectedSems(prev => prev.includes(s) ? prev.filter(x => x !== s) : [...prev, s])}
+                                                            className={`py-2 rounded-xl text-xs font-black transition-all border ${selectedSems.includes(s) ? 'bg-[#001b5e] text-white border-[#001b5e] shadow-lg' : 'bg-white text-slate-400 border-slate-200 hover:border-blue-200'}`}
+                                                        >
+                                                            Sem {s}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    {selectedSems.length > 0 && (
+                                        <div className="grid grid-cols-1 gap-3 pt-4 animate-in fade-in zoom-in duration-500">
+                                            <button
+                                                onClick={async () => {
+                                                    // [AUTO-ALLOCATE LOGIC]
+                                                    setAllocating(true);
+                                                    // 1. Fetch available exams for the scope if not already selected
+                                                    if (selectedExamIds.length === 0) {
+                                                        const scopeExams = exams.filter(ex =>
+                                                            selectedDepts.includes(ex.department) &&
+                                                            selectedYears.includes(ex.year_of_study) &&
+                                                            selectedSems.includes(ex.semester)
+                                                        );
+                                                        if (scopeExams.length > 0) {
+                                                            setSelectedExamIds(scopeExams.slice(0, 2).map(e => e.id));
+                                                        }
+                                                    }
+                                                    // 2. Set default config and generate
+                                                    setTimeout(() => handleAllocate(), 500);
+                                                }}
+                                                disabled={allocating}
+                                                className="bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-blue-200 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 group"
+                                            >
+                                                <Shuffle className={`w-5 h-5 group-hover:rotate-180 transition-transform duration-500 ${allocating ? 'animate-spin' : ''}`} />
+                                                {allocating ? 'Processing...' : '1-Click Auto Allocate'}
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    // Show advanced config
+                                                    document.getElementById('advanced-config')?.scrollIntoView({ behavior: 'smooth' });
+                                                }}
+                                                className="bg-white border-2 border-slate-100 text-slate-400 py-3 rounded-2xl font-black text-xs hover:bg-slate-50 transition-all flex items-center justify-center gap-2"
+                                            >
+                                                <Settings2 className="w-4 h-4" /> Advanced Constraints
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Advanced Configuration (Hidden by default or moved below) */}
+                                    <div id="advanced-config" className="pt-8 space-y-6">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Settings2 className="w-4 h-4 text-slate-400" />
+                                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Allocation Settings</h4>
+                                        </div>
+                                        {/* Exam selection moved here as "Manual Override" */}
+                                        <div className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Manual Course Override</label>
+                                                <select
+                                                    value={selectedExamIds[0] || ''}
+                                                    onChange={(e) => {
+                                                        const val = e.target.value;
+                                                        const next = [...selectedExamIds];
+                                                        if (val) {
+                                                            next[0] = val;
+                                                        } else {
+                                                            next.splice(0, 1);
+                                                        }
+                                                        setSelectedExamIds(next.filter(Boolean));
+                                                    }}
+                                                    className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e] text-xs"
+                                                >
+                                                    <option value="">-- Choose First Exam --</option>
+                                                    {exams.filter(ex =>
+                                                        (selectedDepts.length === 0 || selectedDepts.includes(ex.department)) &&
+                                                        (selectedYears.length === 0 || selectedYears.includes(ex.year_of_study)) &&
+                                                        (selectedSems.length === 0 || selectedSems.includes(ex.semester))
+                                                    ).map(ex => (
+                                                        <option key={ex.id} value={ex.id}>
+                                                            {ex.course_name} ({ex.course_code})
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</label>
+                                            <input type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e] text-xs" />
+                                        </div>
+
+                                        <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
+                                            <div className="space-y-2">
+                                                <div className="flex justify-between items-center">
+                                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rooms</label>
+                                                    <span className="text-[8px] bg-blue-100 text-blue-600 px-1.5 py-0.5 rounded-full font-black">Auto-Calc</span>
+                                                </div>
+                                                <input type="number" value={config.rooms} onChange={(e) => setConfig({ ...config, rooms: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e]" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Members/Room</label>
+                                                <input type="number" value={config.membersPerClass} readOnly className="w-full bg-slate-100 border border-slate-200 p-3 rounded-xl font-bold text-slate-500 cursor-not-allowed" title="Fixed for consistent hall planning" />
+                                            </div>
+                                        </div>
+
+                                        {suggestedCount > 0 && (
+                                            <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex items-center justify-between">
+                                                <div className="flex items-center gap-2">
+                                                    <Users className="w-4 h-4 text-blue-600" />
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-blue-800 uppercase leading-none">Suggested Students</p>
+                                                        <p className="text-xl font-black text-blue-900">{suggestedCount}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] font-black text-blue-800 uppercase leading-none">Room Cap</p>
+                                                    <p className="text-base font-black text-blue-900">30</p>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rows</label>
+                                                <input type="number" value={config.rows} onChange={(e) => setConfig({ ...config, rows: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e]" />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cols</label>
+                                                <input type="number" value={config.cols} onChange={(e) => setConfig({ ...config, cols: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e]" />
+                                            </div>
+                                        </div>
+
+                                        {/* Seating Conditions */}
+                                        <div className="space-y-3 pt-4 border-t border-slate-100">
+                                            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Allocation Rules</label>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                <label className={`flex items-center justify-center p-2 rounded-xl border cursor-pointer transition-all text-center h-full ${conditions.ascendingOrder && !conditions.randomized ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                                                    <input type="checkbox" checked={conditions.ascendingOrder && !conditions.randomized} onChange={(e) => setConditions({ ...conditions, ascendingOrder: e.target.checked, randomized: e.target.checked ? false : conditions.randomized })} className="hidden" />
+                                                    <span className="text-[10px] font-bold leading-tight">Ascending<br />Order</span>
+                                                </label>
+                                                <label className={`flex items-center justify-center p-2 rounded-xl border cursor-pointer transition-all text-center h-full ${conditions.randomized ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                                                    <input type="checkbox" checked={conditions.randomized} onChange={(e) => setConditions({ ...conditions, randomized: e.target.checked, ascendingOrder: e.target.checked ? false : conditions.ascendingOrder })} className="hidden" />
+                                                    <span className="text-[10px] font-bold leading-tight">Randomized<br />Seating</span>
+                                                </label>
+                                                <label className={`flex items-center justify-center p-2 rounded-xl border cursor-pointer transition-all text-center h-full ${conditions.sameDeptAdjacent ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                                                    <input type="checkbox" checked={conditions.sameDeptAdjacent} onChange={(e) => setConditions({ ...conditions, sameDeptAdjacent: e.target.checked })} className="hidden" />
+                                                    <span className="text-[10px] font-bold leading-tight">Same Dept.<br />Adjacent</span>
+                                                </label>
+                                                <label className={`flex items-center justify-center p-2 rounded-xl border cursor-pointer transition-all text-center h-full ${conditions.separateByYear ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
+                                                    <input type="checkbox" checked={conditions.separateByYear} onChange={(e) => setConditions({ ...conditions, separateByYear: e.target.checked })} className="hidden" />
+                                                    <span className="text-[10px] font-bold leading-tight">Separate<br />by Year</span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <button onClick={handleAllocate} disabled={allocating} className="w-full mt-8 bg-[#001b5e] text-white py-4 rounded-2xl font-black shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition-all">
+                                        {allocating ? 'Processing...' : <><Play className="w-4 h-4" /> Generate Plan</>}
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <div className="vantage-card p-6 bg-blue-50 border border-blue-100">
+                                <div className="space-y-3">
+                                    <div className="space-y-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400">Department</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {['ALL', 'CSE', 'ECE', 'MECH', 'IT', 'AI-DS'].map(d => (
+                                                    <button
+                                                        key={d}
+                                                        onClick={() => { setFilterDept(d === 'ALL' ? '' : d); fetchSavedPlan(d === 'ALL' ? '' : d, filterYear) }}
+                                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${filterDept === (d === 'ALL' ? '' : d) ? 'bg-[#001b5e] text-white border-[#001b5e]' : 'bg-white text-slate-400 border-slate-200'}`}
+                                                    >
+                                                        {d}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-400">Year</label>
+                                            <div className="flex gap-2">
+                                                {['ALL', '1', '2', '3', '4'].map(y => (
+                                                    <button
+                                                        key={y}
+                                                        onClick={() => { setFilterYear(y === 'ALL' ? '' : y); fetchSavedPlan(filterDept, y === 'ALL' ? '' : y) }}
+                                                        className={`flex-1 py-1.5 rounded-lg text-[10px] font-black transition-all border ${filterYear === (y === 'ALL' ? '' : y) ? 'bg-[#001b5e] text-white border-[#001b5e]' : 'bg-white text-slate-400 border-slate-200'}`}
+                                                    >
+                                                        {y === 'ALL' ? 'ALL' : `${y}st`}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button onClick={fetchPlanHistory} className="w-full bg-[#001b5e] text-white py-2 rounded-xl font-bold text-sm flex justify-center items-center gap-2 transition-all">
+                                        {loadingHistory ? <span className="animate-spin tracking-widest text-lg">◌</span> : 'Search Plans'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
                         <div className="vantage-card p-8">
-                            <h2 className="text-lg font-black text-[#001b5e] mb-6 flex items-center gap-2">
-                                <Settings2 className="w-5 h-5 text-blue-500" />
-                                Optimization Engine
-                            </h2>
-
-                            {/* Mode Toggle */}
-                            <div className="flex p-1 bg-slate-100 rounded-2xl mb-8">
-                                <button
-                                    onClick={() => setExamMode('internal')}
-                                    className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${examMode === 'internal' ? 'bg-[#001b5e] text-white shadow-lg' : 'text-slate-500 hover:bg-slate-200'}`}
-                                >
-                                    Internal Exam
-                                </button>
-                                <button
-                                    onClick={() => setExamMode('semester')}
-                                    className={`flex-1 py-3 rounded-xl font-bold text-xs transition-all ${examMode === 'semester' ? 'bg-[#001b5e] text-white shadow-lg' : 'text-slate-500 hover:bg-slate-200'}`}
-                                >
-                                    Semester Exam
+                            <h3 className="font-black text-[#001b5e] mb-4">Quick Lookup</h3>
+                            <div className="space-y-4">
+                                <input
+                                    type="text"
+                                    placeholder="Roll Number..."
+                                    className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                <button onClick={handleSearch} className="w-full bg-slate-800 text-white py-2.5 rounded-xl font-bold text-sm">
+                                    {loadingSearch ? 'Searching...' : 'Search'}
                                 </button>
                             </div>
-
-                            <div className="space-y-6">
-                                {/* Common: Dept Select */}
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Departments</label>
-                                    <div className="flex flex-wrap gap-2">
-                                        {['CSE', 'ECE', 'MECH', 'IT', 'AI-DS'].map(d => (
-                                            <button
-                                                key={d}
-                                                onClick={() => setSelectedDepts(prev => prev.includes(d) ? prev.filter(x => x !== d) : [...prev, d])}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${selectedDepts.includes(d) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-400 border-slate-200'}`}
-                                            >
-                                                {d}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Common: Year Select */}
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Years Combination</label>
-                                    <div className="flex gap-2">
-                                        {[1, 2, 3, 4].map(y => (
-                                            <button
-                                                key={y}
-                                                onClick={() => setSelectedYears(prev => prev.includes(y) ? prev.filter(x => x !== y) : [...prev, y])}
-                                                className={`flex-1 py-2 rounded-lg text-[10px] font-black transition-all border ${selectedYears.includes(y) ? 'bg-[#001b5e] text-white border-[#001b5e]' : 'bg-white text-slate-400 border-slate-200'}`}
-                                            >
-                                                {y}st
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</label>
-                                    <input type="date" value={examDate} onChange={(e) => setExamDate(e.target.value)} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e] text-xs" />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rooms</label>
-                                        <input type="number" value={config.rooms} onChange={(e) => setConfig({ ...config, rooms: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e]" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Members/Room</label>
-                                        <input type="number" value={config.membersPerClass} onChange={(e) => setConfig({ ...config, membersPerClass: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e]" />
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rows</label>
-                                        <input type="number" value={config.rows} onChange={(e) => setConfig({ ...config, rows: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e]" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cols</label>
-                                        <input type="number" value={config.cols} onChange={(e) => setConfig({ ...config, cols: parseInt(e.target.value) || 1 })} className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl font-bold text-[#001b5e]" />
-                                    </div>
-                                </div>
-
-                                {/* Seating Conditions */}
-                                <div className="space-y-3 pt-4 border-t border-slate-100">
-                                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Allocation Rules</label>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <label className={`flex items-center justify-center p-2 rounded-xl border cursor-pointer transition-all text-center h-full ${conditions.ascendingOrder && !conditions.randomized ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
-                                            <input type="checkbox" checked={conditions.ascendingOrder && !conditions.randomized} onChange={(e) => setConditions({ ...conditions, ascendingOrder: e.target.checked, randomized: e.target.checked ? false : conditions.randomized })} className="hidden" />
-                                            <span className="text-[10px] font-bold leading-tight">Ascending<br />Order</span>
-                                        </label>
-                                        <label className={`flex items-center justify-center p-2 rounded-xl border cursor-pointer transition-all text-center h-full ${conditions.randomized ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
-                                            <input type="checkbox" checked={conditions.randomized} onChange={(e) => setConditions({ ...conditions, randomized: e.target.checked, ascendingOrder: e.target.checked ? false : conditions.ascendingOrder })} className="hidden" />
-                                            <span className="text-[10px] font-bold leading-tight">Randomized<br />Seating</span>
-                                        </label>
-                                        <label className={`flex items-center justify-center p-2 rounded-xl border cursor-pointer transition-all text-center h-full ${conditions.sameDeptAdjacent ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
-                                            <input type="checkbox" checked={conditions.sameDeptAdjacent} onChange={(e) => setConditions({ ...conditions, sameDeptAdjacent: e.target.checked })} className="hidden" />
-                                            <span className="text-[10px] font-bold leading-tight">Same Dept.<br />Adjacent</span>
-                                        </label>
-                                        <label className={`flex items-center justify-center p-2 rounded-xl border cursor-pointer transition-all text-center h-full ${conditions.separateByYear ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
-                                            <input type="checkbox" checked={conditions.separateByYear} onChange={(e) => setConditions({ ...conditions, separateByYear: e.target.checked })} className="hidden" />
-                                            <span className="text-[10px] font-bold leading-tight">Separate<br />by Year</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button onClick={handleAllocate} disabled={allocating} className="w-full mt-8 bg-[#001b5e] text-white py-4 rounded-2xl font-black shadow-xl shadow-blue-900/20 flex items-center justify-center gap-2 hover:bg-blue-700 active:scale-95 transition-all">
-                                {allocating ? 'Processing...' : <><Play className="w-4 h-4" /> Generate Plan</>}
-                            </button>
-                        </div>
-                    ) : (
-                        <div className="vantage-card p-6 bg-blue-50 border border-blue-100">
-                            <div className="space-y-3">
-                                <div className="space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-slate-400">Department</label>
-                                        <div className="flex flex-wrap gap-2">
-                                            {['ALL', 'CSE', 'ECE', 'MECH', 'IT', 'AI-DS'].map(d => (
-                                                <button
-                                                    key={d}
-                                                    onClick={() => { setFilterDept(d === 'ALL' ? '' : d); fetchSavedPlan(d === 'ALL' ? '' : d, filterYear) }}
-                                                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black transition-all border ${filterDept === (d === 'ALL' ? '' : d) ? 'bg-[#001b5e] text-white border-[#001b5e]' : 'bg-white text-slate-400 border-slate-200'}`}
-                                                >
-                                                    {d}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-slate-400">Year</label>
-                                        <div className="flex gap-2">
-                                            {['ALL', '1', '2', '3', '4'].map(y => (
-                                                <button
-                                                    key={y}
-                                                    onClick={() => { setFilterYear(y === 'ALL' ? '' : y); fetchSavedPlan(filterDept, y === 'ALL' ? '' : y) }}
-                                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-black transition-all border ${filterYear === (y === 'ALL' ? '' : y) ? 'bg-[#001b5e] text-white border-[#001b5e]' : 'bg-white text-slate-400 border-slate-200'}`}
-                                                >
-                                                    {y === 'ALL' ? 'ALL' : `${y}st`}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <button onClick={() => fetchSavedPlan(filterDept, filterYear)} className="w-full bg-[#001b5e] text-white py-2 rounded-xl font-bold text-sm">
-                                    {loadingPlan ? 'Loading...' : 'Search Plans'}
-                                </button>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="vantage-card p-8">
-                        <h3 className="font-black text-[#001b5e] mb-4">Quick Lookup</h3>
-                        <div className="space-y-4">
-                            <input
-                                type="text"
-                                placeholder="Roll Number..."
-                                className="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl text-sm"
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            <button onClick={handleSearch} className="w-full bg-slate-800 text-white py-2.5 rounded-xl font-bold text-sm">
-                                {loadingSearch ? 'Searching...' : 'Search'}
-                            </button>
                         </div>
                     </div>
-                </div>
+                )}
 
-                <div className="lg:col-span-3 space-y-8">
-                    {result ? (
+                <div className={`${role === 'event_coordinator' ? 'lg:col-span-1' : 'lg:col-span-3'} space-y-8`}>
+                    {result && (
                         <div className="space-y-8">
                             {result.rooms.map((room: any, ri: number) => (
                                 <div key={ri} className="vantage-card overflow-hidden transition-all hover:shadow-2xl">
@@ -814,10 +1077,11 @@ export default function SeatingAllocator() {
                                         <div className="grid gap-3" style={{ gridTemplateColumns: `repeat(${config.cols}, 1fr)` }}>
                                             {room.seats.map((seat: any, si: number) => (
                                                 <div key={si} className="group relative p-4 rounded-2xl bg-white border border-slate-100 text-center shadow-sm hover:border-[#001b5e] transition-all hover:translate-y-[-2px]">
-                                                    <p className="text-[9px] font-black text-blue-400 mb-1">{seat.id}</p>
-                                                    <p className="text-xs font-black text-[#1e293b]">{seat.dept}</p>
-                                                    <div className="absolute inset-0 bg-[#001b5e] text-white opacity-0 group-hover:opacity-100 rounded-2xl flex items-center justify-center pointer-events-none transition-opacity">
-                                                        <span className="text-[10px] font-black">{seat.student}</span>
+                                                    <p className="text-[10px] font-black text-blue-500 mb-1">{seat.id}</p>
+                                                    <p className="text-[10px] font-bold text-[#1e293b] leading-tight break-all">{seat.roll_number}</p>
+                                                    <div className="absolute inset-0 bg-[#001b5e] text-white opacity-0 group-hover:opacity-100 rounded-2xl flex flex-col items-center justify-center pointer-events-none transition-opacity p-2">
+                                                        <span className="text-[9px] font-black uppercase tracking-tighter text-blue-200 mb-1">{seat.dept}</span>
+                                                        <span className="text-[10px] font-black text-center">{seat.student_name || 'Assigned'}</span>
                                                     </div>
                                                 </div>
                                             ))}
@@ -826,14 +1090,29 @@ export default function SeatingAllocator() {
                                 </div>
                             ))}
                         </div>
-                    ) : (role === 'admin' || role === 'coe') && savedAllocations.length > 0 ? (
-                        <div className="vantage-card overflow-hidden">
+                    )}
+
+                    {(role === 'admin' || role === 'coe') && savedAllocations.length > 0 && (
+                        <div className="vantage-card overflow-hidden mt-8">
                             <div className="p-6 bg-[#f8fafc] border-b flex justify-between items-center">
                                 <div>
-                                    <h3 className="font-black text-[#001b5e] text-xl">Active Saved Plan</h3>
+                                    <h3 className="font-black text-[#001b5e] text-xl">Saved Seating Plans ({allPlans.length})</h3>
                                     <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">
-                                        Showing {filterDept || 'All'} • {filterYear ? `Year ${filterYear}` : 'All Years'}
+                                        Showing {filterDept || 'All'} • Year {filterYear || 'All'}
                                     </p>
+                                    {allPlans.length > 1 && (
+                                        <div className="mt-4 flex flex-wrap gap-2">
+                                            {allPlans.map((p, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => { setSelectedPlanIndex(i); setResult(allPlans[i]); }}
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${selectedPlanIndex === i ? 'bg-[#001b5e] text-white' : 'bg-white text-slate-400 border-slate-200'}`}
+                                                >
+                                                    {p.exam_mode} • {p.exam_date}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <button
@@ -844,7 +1123,7 @@ export default function SeatingAllocator() {
                                         <FileDown className="w-4 h-4" />
                                         Download PDF
                                     </button>
-                                    {role === 'coe' && (
+                                    {(role === 'coe' || role === 'admin') && (
                                         <button
                                             onClick={() => handleDeletePlan({ dept: filterDept, year: filterYear })}
                                             className="bg-rose-50 text-rose-600 p-3 rounded-xl hover:bg-rose-100 transition-all shadow-sm flex items-center gap-2 font-bold text-sm"
@@ -885,9 +1164,21 @@ export default function SeatingAllocator() {
                                 </table>
                             </div>
                         </div>
-                    ) : (role === 'admin' || role === 'coe') && planHistory.length > 0 ? (
+                    )}
+
+                    {(role === 'admin' || role === 'coe') && planHistory.length > 0 && !result && savedAllocations.length === 0 && (
                         <div className="space-y-4">
-                            <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest px-4">Saved Plans Archive</h3>
+                            <div className="flex justify-between items-center px-4 mt-8">
+                                <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">Saved Plans Archive</h3>
+                                {(role === 'admin' || role === 'coe') && (
+                                    <button
+                                        onClick={handleClearAll}
+                                        className="text-[10px] font-black text-rose-600 hover:text-rose-700 bg-rose-50 px-3 py-1.5 rounded-lg border border-rose-100 transition-all"
+                                    >
+                                        CLEAN DATABASE
+                                    </button>
+                                )}
+                            </div>
                             {planHistory.map((plan, idx) => (
                                 <div key={idx} className="bg-white vantage-card p-6 flex justify-between items-center group hover:border-[#001b5e] transition-all">
                                     <div className="flex gap-6 items-center">
@@ -919,18 +1210,22 @@ export default function SeatingAllocator() {
                                             <FileDown className="w-4 h-4" />
                                             Report
                                         </button>
-                                        <button
-                                            onClick={() => handleDeletePlan({ dept: plan.department, year: plan.year_group, mode: plan.exam_mode })}
-                                            className="text-rose-400 hover:bg-rose-50 hover:text-rose-600 p-2.5 rounded-xl transition-all border border-transparent hover:border-rose-100"
-                                            title="Delete"
-                                        >
-                                            <Trash2 className="w-5 h-5" />
-                                        </button>
+                                        {(role === 'admin' || role === 'coe') && (
+                                            <button
+                                                onClick={() => handleDeletePlan({ dept: plan.department, year: plan.year_group, mode: plan.exam_mode })}
+                                                className="text-rose-400 hover:bg-rose-50 hover:text-rose-600 p-2.5 rounded-xl transition-all border border-transparent hover:border-rose-100"
+                                                title="Delete"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    ) : role === 'student' && mySeat ? (
+                    )}
+
+                    {role === 'student' && mySeat && (
                         <div className="space-y-6">
                             {mySeat.found ? (
                                 <div className="vantage-card overflow-hidden">
@@ -942,7 +1237,7 @@ export default function SeatingAllocator() {
                                         {mySeat.allocations?.map((a: any, i: number) => (
                                             <div key={i} className="p-6 flex items-center justify-between">
                                                 <div className="space-y-1">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase">Exam Hall</p>
+                                                    <span className="text-3xl font-black text-white tracking-widest uppercase">VANTAGE-EDU</span>
                                                     <p className="text-2xl font-black text-[#001b5e]">{a.room_name}</p>
                                                 </div>
                                                 <div className="text-center">
@@ -977,7 +1272,9 @@ export default function SeatingAllocator() {
                                 </div>
                             )}
                         </div>
-                    ) : (
+                    )}
+
+                    {!result && savedAllocations.length === 0 && planHistory.length === 0 && (!mySeat || !mySeat.found) && role !== 'student' && (
                         <div className="vantage-card p-12 flex flex-col items-center justify-center text-center space-y-6 min-h-[500px] border-dashed border-2">
                             <Layers className="w-16 h-16 text-slate-100" />
                             <div className="max-w-xs">
@@ -991,3 +1288,4 @@ export default function SeatingAllocator() {
         </div >
     )
 }
+

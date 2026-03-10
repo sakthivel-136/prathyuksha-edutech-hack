@@ -203,7 +203,7 @@ export default function MindMapNLP() {
                                         <FileText className="w-6 h-6 text-blue-600" />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-[#001b5e] uppercase">{(results && results.filename) ? results.filename : (file ? file.name : "LUMINA Knowledge Graph")}</h3>
+                                        <h3 className="font-black text-[#001b5e] uppercase">{(results && results.filename) ? results.filename : (file ? file.name : "VANTAGE-EDU Knowledge Graph")}</h3>
                                         <p className="text-xs font-bold text-slate-400">Semantic Node Trees</p>
                                     </div>
                                 </div>
@@ -269,7 +269,7 @@ export default function MindMapNLP() {
                                     </div>
                                     <div className="space-y-2">
                                         <h4 className="text-xl font-black text-slate-600">No Document Uploaded</h4>
-                                        <p className="text-slate-400 text-sm max-w-xs mx-auto">Upload a PDF Syllabus document. LUMINA will scan it using AI OCR and map the most critical concepts into a structure.</p>
+                                        <p className="text-slate-400 text-sm max-w-xs mx-auto">Upload a PDF Syllabus document. VANTAGE-EDU will scan it using AI OCR and map the most critical concepts into a structure.</p>
                                     </div>
                                 </div>
                             )}

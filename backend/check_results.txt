@@ -1,0 +1,59 @@
+Checking for admin user profile...
+Traceback (most recent call last):
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/check_admin_user.py", line 10, in <module>
+    res = supabase.table('user_profiles').select('*').eq('email', 'admin@university.edu').execute()
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/postgrest/_sync/request_builder.py", line 47, in execute
+    r = self.request.send()
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/postgrest/base_request_builder.py", line 82, in send
+    return self.session.request(
+           ~~~~~~~~~~~~~~~~~~~~^
+        self.http_method,
+        ^^^^^^^^^^^^^^^^^
+    ...<4 lines>...
+        auth=self.auth,
+        ^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpx/_client.py", line 825, in request
+    return self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
+    )
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 124, in _connect
+    stream = self._network_backend.connect_tcp(**kwargs)
+  File "/Users/rekha/.gemini/antigravity/scratch/prathyuksha-edutech-hack/backend/venv/lib/python3.14/site-packages/httpcore/_backends/sync.py", line 208, in connect_tcp
+    sock = socket.create_connection(
+        address,
+        timeout,
+        source_address=source_address,
+    )
+  File "/opt/homebrew/Cellar/python@3.14/3.14.2_1/Frameworks/Python.framework/Versions/3.14/lib/python3.14/socket.py", line 855, in create_connection
+    sock.connect(sa)
+    ~~~~~~~~~~~~^^^^
+KeyboardInterrupt

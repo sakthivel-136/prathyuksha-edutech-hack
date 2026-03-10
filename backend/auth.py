@@ -54,13 +54,30 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         if email is None:
             raise credentials_exception
             
-        if email == "coe@lumina.edu":
+        # Special Demo Bypasses
+        if email == "coe@lumina.edu" or email == "coe@vantage.edu":
             return {
                 "id": "coe-special-id",
                 "email": email,
                 "username": "Controller of Examinations",
                 "role": "coe",
                 "roll_number": "COE"
+            }
+        if email == "admin@university.edu" or email == "admin":
+            return {
+                "id": "admin-special-id",
+                "email": email,
+                "username": "System Administrator",
+                "role": "admin",
+                "roll_number": "ADMIN"
+            }
+        if email == "student@university.edu" or email == "student":
+            return {
+                "id": "student-special-id",
+                "email": email,
+                "username": "Vantage Student",
+                "role": "student",
+                "roll_number": "STUDENT"
             }
             
         profile_res = supabase.table('user_profiles').select('*').eq('email', email).single().execute()

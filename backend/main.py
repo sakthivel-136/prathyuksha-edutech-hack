@@ -1830,43 +1830,43 @@ async def hall_ticket_status(current_user: dict = Depends(get_current_user)):
         res = sb.table('hall_ticket_publish').select('*').execute()
         pubs = res.data if res.data else []
         
-    # Load rejections and access control from local store
-    rejections = {}
-    access_control = {"hidden_scopes": [], "approved_students": {}, "requests": []}
-    try:
-        if os.path.exists("data/rejections.json"):
-            with open("data/rejections.json", "r") as f: rejections = json.load(f)
-        if os.path.exists("data/access_control.json"):
-            with open("data/access_control.json", "r") as f: access_control = json.load(f)
-    except: pass
+        # Load rejections and access control from local store
+        rejections = {}
+        access_control = {"hidden_scopes": [], "approved_students": {}, "requests": []}
+        try:
+            if os.path.exists("data/rejections.json"):
+                with open("data/rejections.json", "r") as f: rejections = json.load(f)
+            if os.path.exists("data/access_control.json"):
+                with open("data/access_control.json", "r") as f: access_control = json.load(f)
+        except: pass
 
-    # Merge data
-    for p in pubs:
-        # Rejections
-        rej = rejections.get(p['id'])
-        if rej:
-            p['status'] = 'rejected'
-            p['rejection_reason'] = rej.get('reason')
-        else:
-            p['status'] = 'approved' if p.get('is_coe_approved') else 'pending'
-        
-        # Access control
-        pub_id = p['id']
-        p['is_hidden'] = pub_id in access_control.get("hidden_scopes", [])
-        
-        # Per-user visibility check
-        if current_user["role"] == "student" and p['is_hidden']:
-            approved_list = access_control.get("approved_students", {}).get(pub_id, [])
-            p['student_can_view'] = current_user["roll_number"] in approved_list
+        # Merge data
+        for p in pubs:
+            # Rejections
+            rej = rejections.get(p['id'])
+            if rej:
+                p['status'] = 'rejected'
+                p['rejection_reason'] = rej.get('reason')
+            else:
+                p['status'] = 'approved' if p.get('is_coe_approved') else 'pending'
             
-            # Check for existing request
-            my_req = next((r for r in access_control.get("requests", []) 
-                          if r["pub_id"] == pub_id and r["roll_number"] == current_user["roll_number"]), None)
-            p['request_status'] = my_req["status"] if my_req else "none"
-        else:
-            p['student_can_view'] = True # Admins/COE always see
-            p['request_status'] = "n/a"
-        
+            # Access control
+            pub_id = p['id']
+            p['is_hidden'] = pub_id in access_control.get("hidden_scopes", [])
+            
+            # Per-user visibility check
+            if current_user["role"] == "student" and p['is_hidden']:
+                approved_list = access_control.get("approved_students", {}).get(pub_id, [])
+                p['student_can_view'] = current_user["roll_number"] in approved_list
+                
+                # Check for existing request
+                my_req = next((r for r in access_control.get("requests", []) 
+                              if r["pub_id"] == pub_id and r["roll_number"] == current_user["roll_number"]), None)
+                p['request_status'] = my_req["status"] if my_req else "none"
+            else:
+                p['student_can_view'] = True # Admins/COE always see
+                p['request_status'] = "n/a"
+            
         # Determine global status
         any_published = len(pubs) > 0
         any_coe_approved = any(p.get('is_coe_approved') for p in pubs)

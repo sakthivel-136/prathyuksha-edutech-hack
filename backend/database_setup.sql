@@ -101,6 +101,7 @@ CREATE TABLE public.exams (
     department text,
     total_marks integer DEFAULT 100,
     passing_marks integer DEFAULT 40,
+    year_of_study integer DEFAULT 1,
     academic_year text DEFAULT '2025-26',
     semester integer DEFAULT 1,
     hall_ticket_deadline date,

@@ -54,32 +54,47 @@ export default function LoginPage() {
             <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-indigo-500/10 rounded-full blur-3xl"></div>
 
             <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center relative z-10">
-                <div className="hidden lg:block space-y-8">
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center font-black text-[#001b5e] text-2xl">
-                            V
+                <div className="hidden lg:block space-y-12">
+                    <div className="flex items-center gap-4 group cursor-default">
+                        <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 shadow-2xl group-hover:scale-110 transition-all duration-500">
+                            <Shield className="w-8 h-8 text-blue-400 fill-blue-400/20" />
                         </div>
-                        <span className="text-3xl font-black text-white tracking-widest uppercase">Vantage</span>
+                        <div className="flex flex-col">
+                            <span className="text-3xl font-black text-white tracking-widest uppercase leading-none">VANTAGE-EDU</span>
+                            <span className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] mt-1 ml-0.5">Academic Excellence</span>
+                        </div>
                     </div>
 
-                    <h1 className="text-6xl font-black text-white leading-tight">
-                        Integrated Academic <br />
-                        <span className="text-blue-400">& Examination</span> <br />
-                        Management.
-                    </h1>
+                    <div className="space-y-6">
+                        <h1 className="text-7xl font-black text-white leading-[1.1] tracking-tighter">
+                            Advanced <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-300">Intelligent</span> <br />
+                            Management.
+                        </h1>
 
-                    <p className="text-slate-400 text-lg max-w-md">
-                        The next generation of educational management, powered by advanced AI and predictive analytics. High precision, zero friction.
-                    </p>
+                        <p className="text-slate-400 text-lg max-w-md font-medium leading-relaxed">
+                            Experience the future of education with our AI-driven examination and academic orchestration suite. Precision-engineered for modern institutions.
+                        </p>
+                    </div>
 
-                    <div className="flex gap-4">
-                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex-1">
-                            <p className="text-white font-bold text-2xl">92%</p>
-                            <p className="text-slate-400 text-xs">Prediction Accuracy</p>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="flex items-start gap-4 p-4 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
+                            <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                                <Lock className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h4 className="text-white font-bold text-sm">Secure Access</h4>
+                                <p className="text-slate-500 text-[10px] leading-tight mt-1">Enterprise-grade guard for all data.</p>
+                            </div>
                         </div>
-                        <div className="bg-white/5 border border-white/10 p-4 rounded-2xl flex-1">
-                            <p className="text-white font-bold text-2xl">100%</p>
-                            <p className="text-slate-400 text-xs">Seating Satisfaction</p>
+                        <div className="flex items-start gap-4 p-4 rounded-3xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
+                            <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                                <ArrowRight className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h4 className="text-white font-bold text-sm">Fast Sync</h4>
+                                <p className="text-slate-500 text-[10px] leading-tight mt-1">Real-time updates across systems.</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -153,7 +168,7 @@ export default function LoginPage() {
 
                     <div className="pt-4 text-center">
                         <p className="text-slate-400 text-sm">
-                            Protected by <span className="font-bold text-[#001b5e]">Vantage Guard AI</span>
+                            Protected by <span className="font-bold text-[#001b5e]">VANTAGE-EDU Guard AI</span>
                         </p>
                     </div>
                 </div>

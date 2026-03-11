@@ -14,7 +14,7 @@ SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_KEY = os.getenv("SUPABASE_SERVICE_KEY")
 SECRET_KEY = os.getenv("SUPABASE_JWT_SECRET", "super-secret-jwt-token-with-at-least-32-characters-long")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440  # 24 hours
 
 if not SUPABASE_URL or not SUPABASE_KEY:
     print("WARNING: Supabase credentials not found in environment. Backend will fail on DB calls.")
@@ -54,12 +54,30 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
         if email is None:
             raise credentials_exception
             
-        if email == "coe@vantage.edu":
+        # Special Demo Bypasses
+        if email == "coe@lumina.edu" or email == "coe@vantage.edu":
             return {
                 "id": "coe-special-id",
                 "email": email,
                 "username": "Controller of Examinations",
-                "role": "coe"
+                "role": "coe",
+                "roll_number": "COE"
+            }
+        if email == "admin@university.edu" or email == "admin":
+            return {
+                "id": "admin-special-id",
+                "email": email,
+                "username": "System Administrator",
+                "role": "admin",
+                "roll_number": "ADMIN"
+            }
+        if email == "student@university.edu" or email == "student":
+            return {
+                "id": "student-special-id",
+                "email": email,
+                "username": "Vantage Student",
+                "role": "student",
+                "roll_number": "STUDENT"
             }
             
         profile_res = supabase.table('user_profiles').select('*').eq('email', email).single().execute()
@@ -70,7 +88,8 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             "id": profile_res.data.get("id"),
             "email": profile_res.data.get("email"),
             "username": profile_res.data.get("full_name", "User"),
-            "role": profile_res.data.get("role", "student")
+            "role": profile_res.data.get("role", "student"),
+            "roll_number": profile_res.data.get("roll_number")
         }
 
     except Exception as e:

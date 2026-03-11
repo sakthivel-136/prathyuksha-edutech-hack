@@ -169,11 +169,12 @@ async def login_for_access_token(data: LoginRequest):
     }
 
 # --- ADMIN: USER MANAGEMENT ---
+import uuid
 
 class CourseAssignRequest(BaseModel):
-    student_id: uuid.UUID = None
-    department: str = None
-    year_group: int = None
+    student_id: Optional[uuid.UUID] = None
+    department: Optional[str] = None
+    year_group: Optional[int] = None
     course_id: uuid.UUID
     academic_year: str = "2025-26"
     semester: int

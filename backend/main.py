@@ -33,88 +33,13 @@ async def startup_event():
     
     # Run Database Migrations
     try:
-        import psycopg2
-        conn_params = {
-            'dbname': 'postgres',
-            'user': 'postgres',
-            'password': r'$7VPyJLRc%z#6#?',
-            'host': 'db.dxnekibukrxopunrtjgk.supabase.co',
-            'port': 5432
-        }
-        conn = psycopg2.connect(**conn_params)
-        cur = conn.cursor()
+        from auth import supabase
         
         # New Feature Columns & Tables
-        migration_sqls = [
-            "ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS course_link TEXT;",
-            "ALTER TABLE public.courses ADD COLUMN IF NOT EXISTS is_global BOOLEAN DEFAULT true;",
-            "ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS student_rating FLOAT DEFAULT 4.5;",
-            "ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS credits_earned INTEGER DEFAULT 0;",
-            "ALTER TABLE public.hall_ticket_publish ADD COLUMN IF NOT EXISTS is_coe_approved BOOLEAN DEFAULT false;",
-            """
-            CREATE TABLE IF NOT EXISTS public.seating_history (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                exam_id UUID REFERENCES public.exams(id) ON DELETE CASCADE,
-                course_name TEXT NOT NULL,
-                course_code TEXT NOT NULL,
-                exam_date DATE NOT NULL,
-                exam_time TIME NOT NULL,
-                room_name TEXT NOT NULL,
-                total_students INTEGER NOT NULL,
-                seating_map JSONB NOT NULL,
-                created_at TIMESTAMPTZ DEFAULT now()
-            );
-            """,
-            "CREATE INDEX IF NOT EXISTS idx_seating_history_exam ON public.seating_history(exam_id);",
-            "CREATE INDEX IF NOT EXISTS idx_seating_history_course ON public.seating_history(course_code);",
-            """
-            CREATE TABLE IF NOT EXISTS public.polls (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                question TEXT NOT NULL,
-                options JSONB NOT NULL,
-                is_active BOOLEAN DEFAULT true,
-                created_at TIMESTAMPTZ DEFAULT now()
-            );
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS public.poll_responses (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                poll_id UUID REFERENCES public.polls(id) ON DELETE CASCADE,
-                student_id UUID REFERENCES public.user_profiles(id),
-                response TEXT NOT NULL,
-                created_at TIMESTAMPTZ DEFAULT now(),
-                UNIQUE(poll_id, student_id)
-            );
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS public.student_results (
-                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-                student_id UUID REFERENCES public.user_profiles(id),
-                course_id UUID REFERENCES public.courses(id),
-                course_code TEXT,
-                semester INTEGER,
-                academic_year TEXT,
-                status TEXT,
-                grade TEXT,
-                is_arrear BOOLEAN DEFAULT false,
-                created_at TIMESTAMPTZ DEFAULT now(),
-                UNIQUE(student_id, course_id)
-            );
-            """,
-            "CREATE INDEX IF NOT EXISTS idx_results_student ON public.student_results(student_id);",
-            "CREATE INDEX IF NOT EXISTS idx_results_course ON public.student_results(course_id);"
-        ]
-        
-        for sql in migration_sqls:
-            try:
-                cur.execute(sql)
-            except Exception as se:
-                logging.warning(f"Individual statement fail (ignore if exists): {se}")
-        
-        conn.commit()
-        cur.close()
-        conn.close()
-        logging.info("✅ Database migrations for v2 features applied")
+        # Supabase Python client doesn't support raw SQL execution directly via RPC unless a function is defined. 
+        # Since this is run once, it's safer to skip the raw SQL here and let the user run it via Supabase SQL Editor if needed, 
+        # or rely on the fact that migrations were already run locally.
+        logging.info("Skipping raw SQL migrations on startup (Requires Supabase SQL Editor).")
     except Exception as e:
         logging.error(f"❌ Startup migration failed: {e}")
 

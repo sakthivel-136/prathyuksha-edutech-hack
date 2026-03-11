@@ -1,6 +1,7 @@
 /** Clean and format API URL from env var */
 const getApiBaseUrl = () => {
-  return 'http://localhost:8000';
+  // Use environment variable if provided, otherwise default to the deployed backend URL
+  return process.env.NEXT_PUBLIC_API_URL || 'https://prathyuksha-edutech-hack.onrender.com';
 };
 
 /** Central API config - use for all backend calls */
